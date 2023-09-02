@@ -82,7 +82,7 @@ exports.getReviewHandler = catchAsync(async (req, res, next) => {
 
 exports.claimListingHandler = catchAsync(async (req, res, next) => {
   const code = require("crypto").randomBytes(14).toString("hex");
-  const message = `your verification link \n http://localhost:8000/api/v1/company/listing/verify/${code}/${req.body.userId}`;
+  const message = `your verification link \n https://reviewsix.vercel.app/api/v1/company/listing/verify/${code}/${req.body.userId}`;
 
   const review = await companyModal.findByIdAndUpdate(
     {

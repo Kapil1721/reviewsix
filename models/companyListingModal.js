@@ -55,6 +55,17 @@ const companyListing = new mongoose.Schema({
   },
 });
 
+companyListing.pre("save", function (next) {
+  if (this.categoryId) {
+    this.categoryId = this.categoryId.toLowerCase();
+    this.subcategoryid = this.subcategoryid.toLowerCase();
+
+    next();
+  } else {
+    next();
+  }
+});
+
 const companyModal = new mongoose.model("companyListing", companyListing);
 
 module.exports = companyModal;
