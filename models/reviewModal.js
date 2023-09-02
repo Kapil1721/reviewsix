@@ -33,6 +33,11 @@ const review = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+  active: {
+    type: Boolean,
+    default: false,
+    select: false,
+  },
 });
 
 const reviewModal = new mongoose.model("reveiw", review);

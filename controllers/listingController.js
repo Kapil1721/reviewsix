@@ -158,7 +158,6 @@ exports.updateListing = catchAsync(async (req, res, next) => {
       email: req.body.email,
       logo: req.body.logo,
       phone: req.body.phone,
-      subcategoryid: req.body.subcategoryid,
     }
   );
 
@@ -199,7 +198,7 @@ exports.listingByCateController = catchAsync(async (req, res, next) => {
   const data = await companyModal.aggregate([
     {
       $match: {
-        $or: [{ categoryId: req.params.id }, { subcategoryid: req.params.id }],
+        $or: [{ categoryId: req.params.id }],
       },
     },
     {
@@ -256,11 +255,7 @@ exports.getCategoryReviews = catchAsync(async (req, res, next) => {
   const data = await companyModal.aggregate([
     {
       $match: {
-        $or: [
-          { categoryId: req.params.id },
-          { subcategoryid: req.params.id },
-          { websiteLink: req.params.id },
-        ],
+        $or: [{ categoryId: req.params.id }, { websiteLink: req.params.id }],
       },
     },
     {

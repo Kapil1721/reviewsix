@@ -13,10 +13,6 @@ const companyListing = new mongoose.Schema({
     type: String,
     default: null,
   },
-  subcategoryid: {
-    type: String,
-    default: null,
-  },
   logo: {
     type: String,
     default: null,
