@@ -9,6 +9,7 @@ const {
   findRegCompany,
   updateListing,
   listingByCateController,
+  getCategoryReviews,
 } = require("../controllers/listingController");
 const { validUser } = require("../controllers/authController");
 
@@ -24,6 +25,8 @@ router
 router.route("/listing/add").put(validUser, RegNewListing);
 
 router.route("/listing/search/:id").get(listingByCateController);
+
+router.route("/listing/ca/:id").get(getCategoryReviews);
 
 router.route("/listing/find/:id").get(validUser, findRegCompany);
 

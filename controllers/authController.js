@@ -37,7 +37,7 @@ exports.userSignup = catchAsync(async (req, res, next) => {
     createdAt: Date.now(),
   });
 
-  const message = `Click this url to complete the verification process \n http://localhost:8000/api/v1/u-verify/verify/${varificationToken}/${newUser._id}`;
+  const message = `Click this url to complete the verification process \n http://localhost:8000/api/v1/u-verify/${varificationToken}/${newUser._id}`;
 
   try {
     await sendEmail({

@@ -251,3 +251,51 @@ exports.listingByCateController = catchAsync(async (req, res, next) => {
     data,
   });
 });
+
+exports.getCategoryReviews = catchAsync(async (req, res, next) => {
+  const data = await companyModal.aggregate([
+    {
+      $match: {
+        $or: [
+          { categoryId: req.params.id },
+          { subcategoryid: req.params.id },
+          { websiteLink: req.params.id },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        listid: {
+          $toString: "$_id",
+        },
+      },
+    },
+    {
+      $lookup: {
+        from: "reveiws",
+        localField: "listid",
+        foreignField: "listingId",
+        as: "reviews",
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        reviews: 1,
+        websiteLink: 1,
+        logo: 1,
+      },
+    },
+    { $unwind: "$reviews" },
+    {
+      $sample: {
+        size: 8,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
