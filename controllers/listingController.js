@@ -47,6 +47,7 @@ exports.getReviewHandler = catchAsync(async (req, res, next) => {
     {
       $match: {
         listingId: req.query.id,
+        active: { $ne: false },
       },
     },
     {
