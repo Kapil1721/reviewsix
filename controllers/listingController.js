@@ -6,10 +6,14 @@ const sendEmail = require("../utils/email");
 
 const ObjectId = require("mongodb").ObjectId;
 
+const natural = require("natural");
+
 exports.createCompanyListing = catchAsync(async (req, res, next) => {
   const isListed = await companyModal.findOne({
     websiteLink: req.body.websiteLink,
   });
+
+  console.log(req.body);
 
   if (isListed) {
     res.status(200).json({
@@ -127,6 +131,7 @@ exports.RegNewListing = catchAsync(async (req, res, next) => {
       data: isListed,
     });
   } else {
+    console.log(req.body);
     const newListing = await companyModal.create(req.body);
 
     res.status(200).json({
@@ -294,3 +299,45 @@ exports.getCategoryReviews = catchAsync(async (req, res, next) => {
     data,
   });
 });
+
+exports.ListingSearch = catchAsync(async (req, res, next) => {
+  const searchQuery = req.params.id;
+
+  const allDocuments = await companyModal.find({});
+  const results = [];
+
+  const tokenizer = new natural.WordTokenizer();
+  const queryTokens = tokenizer.tokenize(searchQuery.toLowerCase());
+
+  allDocuments.forEach((doc) => {
+    const titleTokens = tokenizer.tokenize(
+      doc.websiteLink.split(".")[0].toLowerCase()
+    );
+    const titleScore = calculateSimilarityScore(queryTokens, titleTokens);
+
+    if (titleScore > 0.5) {
+      results.push(doc);
+    }
+  });
+  const top5Results = results.slice(0, 5);
+
+  res.status(200).json({
+    message: "success",
+    results: top5Results,
+  });
+});
+
+function calculateSimilarityScore(queryTokens, documentTokens) {
+  const score = queryTokens.reduce((totalScore, queryToken) => {
+    const tokenScores = documentTokens.map(
+      (documentToken) =>
+        1 -
+        natural.LevenshteinDistance(queryToken, documentToken) /
+          Math.max(queryToken.length, documentToken.length)
+    );
+
+    return totalScore + Math.max(...tokenScores);
+  }, 0);
+
+  return score / queryTokens.length;
+}

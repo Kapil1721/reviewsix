@@ -20,6 +20,7 @@ const companyListing = new mongoose.Schema({
   websiteLink: {
     type: String,
     required: [true, "Website Link is required"],
+    index: "text",
   },
   about: {
     type: String,
@@ -54,8 +55,6 @@ const companyListing = new mongoose.Schema({
 companyListing.pre("save", function (next) {
   if (this.categoryId) {
     this.categoryId = this.categoryId.toLowerCase();
-    this.subcategoryid = this.subcategoryid.toLowerCase();
-
     next();
   } else {
     next();
