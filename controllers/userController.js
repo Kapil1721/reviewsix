@@ -195,9 +195,9 @@ exports.createUserWithListing = catchAsync(async (req, res, next) => {
       message,
     });
 
-    res.status(200).json({
+    res.status(201).json({
       message: "success",
-      status: 200,
+      status: 201,
     });
   } catch (err) {
     return next(
