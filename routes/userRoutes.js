@@ -12,6 +12,7 @@ const {
   GetUserData,
   updateUserData,
   getUserListing,
+  createUserWithListing,
 } = require("../controllers/userController");
 const router = express.Router();
 
@@ -32,6 +33,7 @@ router
   .get(validUser, GetUserData)
   .post(validUser, updateUserData);
 
+router.route("/user-l").post(createUserWithListing);
 router.route("/b-listing").get(validUser, getUserListing);
 
 module.exports = router;

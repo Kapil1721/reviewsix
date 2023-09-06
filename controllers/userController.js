@@ -2,6 +2,7 @@ const catchAsync = require("../utils/catchAsync");
 const reviewModal = require("../models/reviewModal");
 const User = require("../models/userModel");
 const companyModal = require("../models/companyListingModal");
+const sendEmail = require("../utils/email");
 
 exports.getUserReviews = catchAsync(async (req, res, next) => {
   const page = req.query.page * 1 || 1;
@@ -154,4 +155,54 @@ exports.getUserListing = catchAsync(async (req, res, next) => {
     status: 200,
     data: listingData,
   });
+});
+
+exports.createUserWithListing = catchAsync(async (req, res, next) => {
+  let password = require("crypto").randomBytes(12).toString("hex");
+  password = require("crypto")
+    .createHash("sha256")
+    .update(password)
+    .digest("hex");
+
+  const code = require("crypto").randomBytes(14).toString("hex");
+
+  const newuser = await User.create({
+    email: req.body.email,
+    name: req.body.email.split("@")[0],
+    password,
+  });
+
+  newuser.password = undefined;
+
+  const message = `Your new account has been successfully created. Here are your account details : \n
+  ,your email: ${req.body.email} and password: ${password} \n
+  your verification link to verify your listing is  \n https://reviewsix.vercel.app/api/v1/company/listing/verify/${code}/${newuser._id}
+  `;
+
+  await companyModal.findOneAndUpdate(
+    {
+      websiteLink: req.body.email.split("@")[1],
+    },
+    {
+      verifyCode: code,
+    }
+  );
+
+  try {
+    await sendEmail({
+      email: req.body.email,
+      subject: "Welcome to Software hub 360",
+      message,
+    });
+
+    res.status(200).json({
+      message: "success",
+      status: 200,
+    });
+  } catch (err) {
+    return next(
+      new AppError("There was an error sending the email. Try again later!"),
+      500
+    );
+  }
 });
