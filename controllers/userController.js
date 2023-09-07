@@ -142,10 +142,10 @@ exports.getUserListing = catchAsync(async (req, res, next) => {
       $unset: "reviews",
     },
     {
-      $limit: 5,
+      $skip: skip,
     },
     {
-      $skip: skip,
+      $limit: 5,
     },
   ]);
 
