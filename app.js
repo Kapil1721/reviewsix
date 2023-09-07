@@ -2,6 +2,7 @@ const cors = require("cors");
 const express = require("express");
 const helmet = require("helmet");
 const dotenv = require("dotenv");
+const fs = require("fs");
 
 dotenv.config({ path: "./config.env" });
 
@@ -19,12 +20,15 @@ const adminRoutes = require("./routes/adminRoutes");
 // -------------------------------------------------
 
 const AppError = require("./utils/appError");
+const sendEmail = require("./utils/email");
 
 // *-------------------------------------
 
 const port = process.env.PORT || 3000;
 
 const app = express();
+
+app.use(express.static(`${__dirname}`));
 
 process.on("uncaughtException", (err) => {
   console.log("UNCAUGHT EXCEPTION! 💥 Shutting down...");
@@ -50,6 +54,14 @@ app.use(
     credentials: true,
   })
 );
+
+// app.get("/", async (req, res, next) => {
+//   let x = fs.readFileSync(__dirname + "/emailTemp.html", "utf8");
+
+//   let y = x.replace("{{name}}", "kamles").replace("%{{email}}%", "kabbo");
+
+//   res.send(y);
+// });
 // * ---------------------------
 
 app.use("/api/v1", userRouter);

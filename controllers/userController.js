@@ -4,6 +4,8 @@ const User = require("../models/userModel");
 const companyModal = require("../models/companyListingModal");
 const sendEmail = require("../utils/email");
 
+const fs = require("fs");
+
 exports.getUserReviews = catchAsync(async (req, res, next) => {
   const page = req.query.page * 1 || 1;
   const skip = (page - 1) * 5;
@@ -170,6 +172,7 @@ exports.createUserWithListing = catchAsync(async (req, res, next) => {
     email: req.body.email,
     name: req.body.email.split("@")[0],
     password,
+    verified: true,
   });
 
   newuser.password = undefined;
@@ -188,11 +191,23 @@ exports.createUserWithListing = catchAsync(async (req, res, next) => {
     }
   );
 
+  let x = fs.readFileSync(__dirname + "/emailTemp.html", "utf8");
+
+  let y = x
+    .replace("{{name}}", req.body.email.split("@")[0])
+    .replace("{{email}}", req.body.email)
+    .replace("{{password}}", password)
+    .replace(
+      "{{link}}",
+      `https://reviewsix.vercel.app/api/v1/company/listing/verify/${code}/${newuser._id}`
+    );
+
   try {
     await sendEmail({
       email: req.body.email,
       subject: "Welcome to Software hub 360",
       message,
+      html: y,
     });
 
     res.status(201).json({
