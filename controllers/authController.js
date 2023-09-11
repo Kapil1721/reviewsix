@@ -34,7 +34,6 @@ exports.userSignup = catchAsync(async (req, res, next) => {
     email: req.body.email,
     password: req.body.password,
     verification: varificationToken,
-    createdAt: Date.now(),
   });
 
   const message = `Click this url to complete the verification process \n https://reviewsix.vercel.app/api/v1/u-verify/${varificationToken}/${newUser._id}`;
