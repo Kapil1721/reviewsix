@@ -188,6 +188,7 @@ exports.updateBlogData = catchAsync(async (req, res, next) => {
   data.metaTitle = req.body.metaTitle;
   data.metaDescription = req.body.metaDescription;
   data.metaKeywords = req.body.metaKeywords;
+  data.alt = req.body.alt;
 
   await data.save();
 
