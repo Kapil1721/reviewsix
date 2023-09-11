@@ -76,6 +76,7 @@ exports.getReviewData = catchAsync(async (req, res, next) => {
     {
       $unwind: "$user",
     },
+    { $sort: { date: -1 } },
   ]);
 
   res.status(200).json({
@@ -95,11 +96,13 @@ exports.deleteReviewData = catchAsync(async (req, res, next) => {
 //  - ----- user
 
 exports.getUserData = catchAsync(async (req, res, next) => {
-  const data = await User.find();
+  const data = User.find();
+
+  const sorted = await data.sort("-createdAt");
 
   res.status(200).json({
     message: "success",
-    data,
+    data: sorted,
   });
 });
 
@@ -137,6 +140,7 @@ exports.getListingData = catchAsync(async (req, res, next) => {
     {
       $unset: "user.password",
     },
+    { $sort: { date: -1 } },
   ]);
 
   res.status(200).json({
@@ -174,8 +178,6 @@ exports.postBlogData = catchAsync(async (req, res, next) => {
 });
 
 exports.updateBlogData = catchAsync(async (req, res, next) => {
-  console.log(req.params.id);
-
   const data = await blog.findOne({
     _id: req.params.id,
   });
@@ -199,5 +201,16 @@ exports.deleteBlogData = catchAsync(async (req, res, next) => {
 
   res.status(204).json({
     message: "blog deleted successfully",
+  });
+});
+
+exports.updateStatus = catchAsync(async (req, res, next) => {
+  await reviewModal.findByIdAndUpdate(
+    { _id: req.body.id },
+    { active: req.body.status }
+  );
+
+  res.status(200).json({
+    message: "status updated",
   });
 });

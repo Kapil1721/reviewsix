@@ -11,12 +11,17 @@ const {
   deleteBlogData,
   postBlogData,
   updateBlogData,
+  updateStatus,
 } = require("../controllers/adminController");
 
 const router = express.Router();
 
 router.route("/size-collec").get(collectionSizeData);
-router.route("/review/:id?").get(getReviewData).delete(deleteReviewData);
+router
+  .route("/review/:id?")
+  .get(getReviewData)
+  .delete(deleteReviewData)
+  .post(updateStatus);
 router.route("/user/:id?").get(getUserData).delete(deleteUserData);
 router.route("/listing/:id?").get(getListingData).delete(deleteListingData);
 router
