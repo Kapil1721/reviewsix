@@ -5,6 +5,7 @@ const blogSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please provide blog Title"],
   },
+  alt: { type: String, required: [true, "Please provide blog alt text"] },
   description: {
     type: String,
     required: [true, "Please provide blog description"],
