@@ -3,6 +3,7 @@ const User = require("../models/userModel");
 const companyModal = require("../models/companyListingModal");
 const blog = require("../models/blogModal");
 const reviewModal = require("../models/reviewModal");
+const blogCommentModal = require("../models/blogCommentModal");
 
 exports.collectionSizeData = catchAsync(async (req, res, next) => {
   const users = await User.aggregate([
@@ -170,6 +171,7 @@ exports.getBlogData = catchAsync(async (req, res, next) => {
 });
 
 exports.postBlogData = catchAsync(async (req, res, next) => {
+  console.log(req.body);
   await blog.create(req.body);
 
   res.status(201).json({
@@ -189,6 +191,10 @@ exports.updateBlogData = catchAsync(async (req, res, next) => {
   data.metaDescription = req.body.metaDescription;
   data.metaKeywords = req.body.metaKeywords;
   data.alt = req.body.alt;
+  data.category = req.body.category;
+  data.tags = req.body.tags;
+  data.table = req.body.table;
+  data.faq = req.body.faq;
 
   await data.save();
 
@@ -208,7 +214,29 @@ exports.deleteBlogData = catchAsync(async (req, res, next) => {
 exports.updateStatus = catchAsync(async (req, res, next) => {
   await reviewModal.findByIdAndUpdate(
     { _id: req.body.id },
-    { active: req.body.status }
+    { status: req.body.status }
+  );
+
+  res.status(200).json({
+    message: "status updated",
+  });
+});
+
+exports.getBlogCommentData = catchAsync(async (req, res, next) => {
+  const data = await blogCommentModal
+    .find({ postid: req.params.id })
+    .sort({ date: -1 });
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
+
+exports.adminClaim = catchAsync(async (req, res, next) => {
+  let x = await companyModal.findByIdAndUpdate(
+    { _id: req.body.id },
+    { status: req.body.status, userId: null }
   );
 
   res.status(200).json({
