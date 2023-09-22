@@ -77,6 +77,9 @@ exports.getReviewData = catchAsync(async (req, res, next) => {
     {
       $unwind: "$user",
     },
+    {
+      $unset: ["user.password", "user.verification", "user.createdAt"],
+    },
     { $sort: { date: -1 } },
   ]);
 
@@ -214,7 +217,7 @@ exports.deleteBlogData = catchAsync(async (req, res, next) => {
 exports.updateStatus = catchAsync(async (req, res, next) => {
   await reviewModal.findByIdAndUpdate(
     { _id: req.body.id },
-    { status: req.body.status }
+    { active: req.body.status }
   );
 
   res.status(200).json({
@@ -222,13 +225,36 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.updateListingStatus = catchAsync(async (req, res, next) => {
+  await companyModal.findByIdAndUpdate(
+    { _id: req.body.id },
+    { hasadmin: req.body.hasadmin }
+  );
+
+  console.log(req.body);
+
+  res.status(200).json({
+    message: "status updated",
+  });
+});
+
 exports.getBlogCommentData = catchAsync(async (req, res, next) => {
+  const limit = 10;
+  const page = req.query.page * 1 || 1;
+  const skip = (page - 1) * limit;
+
+  const length =
+    (await blogCommentModal.find({ postid: req.params.id }).count()) || 0;
+
   const data = await blogCommentModal
     .find({ postid: req.params.id })
+    .limit(limit)
+    .skip(skip)
     .sort({ date: -1 });
 
   res.status(200).json({
     message: "success",
+    length,
     data,
   });
 });
@@ -241,5 +267,14 @@ exports.adminClaim = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     message: "status updated",
+  });
+});
+
+exports.bulkUploaderController = catchAsync(async (req, res, next) => {
+  const data = await companyModal.insertMany(req.body);
+
+  res.status(201).json({
+    message: "success",
+    data,
   });
 });

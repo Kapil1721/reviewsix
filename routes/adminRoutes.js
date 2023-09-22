@@ -14,7 +14,13 @@ const {
   updateStatus,
   adminClaim,
   getBlogCommentData,
+  bulkUploaderController,
+  updateListingStatus,
 } = require("../controllers/adminController");
+const {
+  blogCommentDeleteHandler,
+  changeActiveStatus,
+} = require("../controllers/blogController");
 
 const router = express.Router();
 
@@ -25,8 +31,13 @@ router
   .delete(deleteReviewData)
   .post(updateStatus);
 router.route("/user/:id?").get(getUserData).delete(deleteUserData);
-router.route("/listing/:id?").get(getListingData).delete(deleteListingData);
-router.route("/listing/:id?").get(getListingData).delete(deleteListingData);
+
+router
+  .route("/listing/:id?")
+  .get(getListingData)
+  .delete(deleteListingData)
+  .patch(updateListingStatus);
+
 router
   .route("/listing/:id?")
   .get(getListingData)
@@ -40,6 +51,12 @@ router
   .post(postBlogData)
   .put(updateBlogData);
 
-router.route("/blog/comment/:id").get(getBlogCommentData);
+router
+  .route("/blog/comment/:id")
+  .get(getBlogCommentData)
+  .delete(blogCommentDeleteHandler)
+  .patch(changeActiveStatus);
+
+router.route("/bulk").post(bulkUploaderController);
 
 module.exports = router;

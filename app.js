@@ -4,6 +4,8 @@ const helmet = require("helmet");
 const dotenv = require("dotenv");
 const fs = require("fs");
 
+const bodyParser = require("body-parser");
+
 dotenv.config({ path: "./config.env" });
 
 const mongoose = require("mongoose");
@@ -44,6 +46,10 @@ mongoose
 
 // * ---------------------------
 dotenv.config({ path: "./config.env" });
+
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
+
 app.use(express.json());
 app.use(helmet());
 app.use(express.json());

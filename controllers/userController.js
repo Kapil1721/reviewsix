@@ -10,9 +10,13 @@ exports.getUserReviews = catchAsync(async (req, res, next) => {
   const page = req.query.page * 1 || 1;
   const skip = (page - 1) * 5;
 
+  const tf =
+    req.query.f === "true" ? true : req.query.f === "false" ? false : null;
+  const o = req.query.f !== "all" && req.query.f ? { active: tf } : {};
+
   const totalCount = await reviewModal.aggregate([
     {
-      $match: { userId: req.body.userId },
+      $match: { userId: req.body.userId, ...o },
     },
     {
       $count: "totalCount",
@@ -23,7 +27,7 @@ exports.getUserReviews = catchAsync(async (req, res, next) => {
 
   const review = await reviewModal.aggregate([
     {
-      $match: { userId: req.body.userId },
+      $match: { userId: req.body.userId, ...o },
     },
     { $addFields: { plisting: { $toObjectId: "$listingId" } } },
     {
@@ -104,9 +108,13 @@ exports.getUserListing = catchAsync(async (req, res, next) => {
   const page = req.query.page * 1 || 1;
   const skip = (page - 1) * 5;
 
+  const tf =
+    req.query.f === "true" ? true : req.query.f === "false" ? false : null;
+  const o = req.query.f !== "all" && req.query.f ? { hasadmin: tf } : {};
+
   const totalCount = await companyModal.aggregate([
     {
-      $match: { userId: req.body.userId },
+      $match: { userId: req.body.userId, ...o },
     },
     {
       $count: "totalCount",
@@ -117,7 +125,7 @@ exports.getUserListing = catchAsync(async (req, res, next) => {
 
   let listingData = await companyModal.aggregate([
     {
-      $match: { userId: req.body.userId },
+      $match: { userId: req.body.userId, ...o },
     },
     {
       $addFields: {
@@ -156,6 +164,14 @@ exports.getUserListing = catchAsync(async (req, res, next) => {
     message: "success",
     status: 200,
     data: listingData,
+  });
+});
+
+exports.deleteUserListing = catchAsync(async (req, res, next) => {
+  await companyModal.findByIdAndDelete(req.params.id);
+
+  res.status(204).json({
+    message: "listing deleted Successfully",
   });
 });
 
@@ -220,4 +236,50 @@ exports.createUserWithListing = catchAsync(async (req, res, next) => {
       500
     );
   }
+});
+
+exports.reviewStats = catchAsync(async (req, res, err) => {
+  const data = await reviewModal.aggregate([
+    {
+      $match: { userId: req.body.userId },
+    },
+    {
+      $group: {
+        _id: "$active",
+        total: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const result = data.reduce((acc, e) => {
+    acc[e._id] = e.total;
+    return acc;
+  }, {});
+
+  res.status(200).json({
+    data: result,
+  });
+});
+
+exports.ListingStats = catchAsync(async (req, res, err) => {
+  const data = await companyModal.aggregate([
+    {
+      $match: { userId: req.body.userId },
+    },
+    {
+      $group: {
+        _id: "$hasadmin",
+        total: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const result = data.reduce((acc, e) => {
+    acc[e._id] = e.total;
+    return acc;
+  }, {});
+
+  res.status(200).json({
+    data: result,
+  });
 });

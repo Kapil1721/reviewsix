@@ -20,11 +20,17 @@ const companyListing = new mongoose.Schema({
   websiteLink: {
     type: String,
     required: [true, "Website Link is required"],
-    index: "text",
   },
   about: {
     type: String,
     default: null,
+  },
+  city: { type: String, default: null },
+  pincode: { type: String, default: null },
+  city: { type: String, default: null },
+  physical: {
+    type: Boolean,
+    default: false,
   },
   email: {
     type: String,
@@ -49,6 +55,11 @@ const companyListing = new mongoose.Schema({
   status: {
     type: Boolean,
     default: false,
+  },
+  hasadmin: {
+    type: Boolean,
+    default: null,
+    allowNull: true,
   },
 });
 

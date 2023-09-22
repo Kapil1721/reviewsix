@@ -4,6 +4,13 @@ const {
   getBlogbyid,
   getBlogsuggestion,
   commentBlog,
+  getBlogDataHandler,
+  BlogCategoryInsertHandler,
+  getBlogCategoryHandler,
+  updateBlogCategoryHandler,
+  deleteBlogCategoryHandler,
+  getFooterData,
+  updateFooterData,
 } = require("../controllers/blogController");
 
 const router = express.Router();
@@ -11,6 +18,15 @@ const router = express.Router();
 router.route("/blog").get(getBlogList);
 router.route("/blog/:id").get(getBlogbyid);
 router.route("/blog/suggestion/:id").get(getBlogsuggestion);
-router.route("/blog/comment").put(commentBlog);
+router.route("/blog/comment/:id?").put(commentBlog).get(getBlogDataHandler);
+
+router.route("/setting").get(getFooterData).patch(updateFooterData);
+
+router
+  .route("/category/blog/:id?")
+  .post(BlogCategoryInsertHandler)
+  .get(getBlogCategoryHandler)
+  .patch(updateBlogCategoryHandler)
+  .delete(deleteBlogCategoryHandler);
 
 module.exports = router;

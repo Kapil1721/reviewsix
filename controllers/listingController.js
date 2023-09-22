@@ -13,8 +13,6 @@ exports.createCompanyListing = catchAsync(async (req, res, next) => {
     websiteLink: req.body.websiteLink,
   });
 
-  console.log(req.body);
-
   if (isListed) {
     res.status(200).json({
       message: "success",
@@ -47,7 +45,7 @@ exports.getReviewHandler = catchAsync(async (req, res, next) => {
     {
       $match: {
         listingId: req.query.id,
-        active: { $ne: false },
+        active: true,
       },
     },
     {
@@ -111,8 +109,6 @@ exports.claimListingHandler = catchAsync(async (req, res, next) => {
       data: review,
     });
   } catch (err) {
-    console.log(err);
-
     return next(
       new AppError("There was an error sending the email. Try again later!"),
       500
@@ -132,7 +128,6 @@ exports.RegNewListing = catchAsync(async (req, res, next) => {
       data: isListed,
     });
   } else {
-    console.log(req.body);
     const newListing = await companyModal.create(req.body);
 
     res.status(200).json({
@@ -159,11 +154,14 @@ exports.updateListing = catchAsync(async (req, res, next) => {
     {
       about: req.body.about,
       address: req.body.address,
-      categoryId: req.body.categoryId,
+      categoryId: req?.body?.categoryId?.toLowerCase(),
       companyName: req.body.companyName,
       email: req.body.email,
       logo: req.body.logo,
       phone: req.body.phone,
+      city: req.body.city,
+      pincode: req.body.pincode,
+      physical: req.body.physical,
     }
   );
 

@@ -17,6 +17,10 @@ const blogCommentSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please Provide message"],
   },
+  active: {
+    type: Boolean,
+    default: false,
+  },
   date: {
     type: Date,
     default: Date.now(),

@@ -13,6 +13,9 @@ const {
   updateUserData,
   getUserListing,
   createUserWithListing,
+  reviewStats,
+  ListingStats,
+  deleteUserListing,
 } = require("../controllers/userController");
 const router = express.Router();
 
@@ -34,6 +37,12 @@ router
   .post(validUser, updateUserData);
 
 router.route("/user-l").post(createUserWithListing);
-router.route("/b-listing").get(validUser, getUserListing);
+router
+  .route("/b-listing/:id?")
+  .get(validUser, getUserListing)
+  .delete(validUser, deleteUserListing);
+
+router.route("/review-stats").get(validUser, reviewStats);
+router.route("/business-stats").get(validUser, ListingStats);
 
 module.exports = router;
