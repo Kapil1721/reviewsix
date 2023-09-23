@@ -45,6 +45,7 @@ mongoose
   .then(() => console.log("DB connection successful!"));
 
 // * ---------------------------
+
 dotenv.config({ path: "./config.env" });
 
 app.use(bodyParser.json({ limit: "10mb" }));
