@@ -16,6 +16,7 @@ const {
   reviewStats,
   ListingStats,
   deleteUserListing,
+  getTopRatingUser,
 } = require("../controllers/userController");
 const router = express.Router();
 
@@ -41,6 +42,8 @@ router
   .route("/b-listing/:id?")
   .get(validUser, getUserListing)
   .delete(validUser, deleteUserListing);
+
+router.route("/top-reviewers").get(getTopRatingUser);
 
 router.route("/review-stats").get(validUser, reviewStats);
 router.route("/business-stats").get(validUser, ListingStats);

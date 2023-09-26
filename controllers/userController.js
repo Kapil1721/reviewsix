@@ -261,6 +261,62 @@ exports.reviewStats = catchAsync(async (req, res, err) => {
   });
 });
 
+exports.getTopRatingUser = catchAsync(async (req, res, next) => {
+  const data = await reviewModal.aggregate([
+    {
+      $group: {
+        _id: "$userId",
+        total: {
+          $sum: 1,
+        },
+      },
+    },
+    {
+      $sort: {
+        total: -1,
+      },
+    },
+    {
+      $addFields: {
+        ii: {
+          $toObjectId: "$_id",
+        },
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "ii",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    {
+      $unwind: "$user",
+    },
+    {
+      $project: {
+        user: 1,
+      },
+    },
+    {
+      $unset: [
+        "user.password",
+        "user.email",
+        "user.verification",
+        "user.verified",
+        "user.address",
+        "user.phone",
+      ],
+    },
+  ]);
+
+  res.json({
+    message: "success",
+    data,
+  });
+});
+
 exports.ListingStats = catchAsync(async (req, res, err) => {
   const data = await companyModal.aggregate([
     {

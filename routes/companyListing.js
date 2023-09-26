@@ -11,6 +11,7 @@ const {
   listingByCateController,
   getCategoryReviews,
   ListingSearch,
+  getReviewByCategory,
 } = require("../controllers/listingController");
 const { validUser } = require("../controllers/authController");
 
@@ -38,5 +39,7 @@ router.route("/listing/upd-listing").post(validUser, updateListing);
 router.route("/listing/claim").post(validUser, claimListingHandler);
 
 router.route("/listing/verify/:vcode/:uid").get(verifiyListingConfirmation);
+
+router.route("/listing/review/:id").get(getReviewByCategory);
 
 module.exports = router;

@@ -299,6 +299,43 @@ exports.getCategoryReviews = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getReviewByCategory = catchAsync(async (req, res, err) => {
+  const data = await companyModal.aggregate([
+    {
+      $match: { categoryId: req.params.id },
+    },
+    {
+      $addFields: {
+        i: { $toString: "$_id" },
+      },
+    },
+    {
+      $lookup: {
+        from: "reveiws",
+        localField: "i",
+        foreignField: "listingId",
+        as: "reviews",
+      },
+    },
+    {
+      $project: {
+        reviews: 1,
+        websiteLink: 1,
+        logo: 1,
+        _id: 0,
+      },
+    },
+    {
+      $unwind: "$reviews",
+    },
+  ]);
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
+
 exports.ListingSearch = catchAsync(async (req, res, next) => {
   const searchQuery = req.params.id;
 
