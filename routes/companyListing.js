@@ -12,6 +12,7 @@ const {
   getCategoryReviews,
   ListingSearch,
   getReviewByCategory,
+  replyUserReviews,
 } = require("../controllers/listingController");
 const { validUser } = require("../controllers/authController");
 
@@ -22,7 +23,8 @@ router.route("/listing").put(createCompanyListing);
 router
   .route("/listing/review")
   .put(validUser, reviewPostHandler)
-  .get(getReviewHandler);
+  .get(getReviewHandler)
+  .patch(validUser, replyUserReviews);
 
 router.route("/listing/add").put(validUser, RegNewListing);
 

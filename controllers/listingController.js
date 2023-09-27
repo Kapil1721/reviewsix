@@ -336,6 +336,25 @@ exports.getReviewByCategory = catchAsync(async (req, res, err) => {
   });
 });
 
+exports.replyUserReviews = catchAsync(async (req, res, err) => {
+  await reviewModal.findOneAndUpdate(
+    { _id: req.body.id },
+    {
+      $push: {
+        response: {
+          reply: req.body.reply,
+          date: Date.now(),
+        },
+      },
+    },
+    { new: true, runValidators: true }
+  );
+
+  res.status(200).json({
+    message: "success",
+  });
+});
+
 exports.ListingSearch = catchAsync(async (req, res, next) => {
   const searchQuery = req.params.id;
 

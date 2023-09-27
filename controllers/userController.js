@@ -339,5 +339,3 @@ exports.ListingStats = catchAsync(async (req, res, err) => {
     data: result,
   });
 });
-
-//hollow purple

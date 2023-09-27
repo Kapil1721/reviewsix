@@ -38,6 +38,14 @@ const review = new mongoose.Schema({
     default: null,
     allowNull: true,
   },
+  response: [
+    {
+      reply: String,
+      date: {
+        type: Date,
+      },
+    },
+  ],
 });
 
 const reviewModal = new mongoose.model("reveiw", review);
