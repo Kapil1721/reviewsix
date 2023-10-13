@@ -3,7 +3,7 @@
   "name": "backend-server",
   "builds": [
     { "src": "app.js", "use": "@vercel/node" },
-    { "src": "prisma/schema.prisma", "use": "@prisma/cli" }
+    { "src": "prisma/schema.prisma", "use": "@prisma" }
   ],
   "routes": [{ "src": "/(.*)", "dest": "app.js" }]
 }
