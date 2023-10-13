@@ -13,6 +13,8 @@ const {
   ListingSearch,
   getReviewByCategory,
   replyUserReviews,
+  lisingCategory,
+  getTopCategory,
 } = require("../controllers/listingController");
 const { validUser } = require("../controllers/authController");
 
@@ -25,6 +27,9 @@ router
   .put(validUser, reviewPostHandler)
   .get(getReviewHandler)
   .patch(validUser, replyUserReviews);
+
+router.route("/listing/category").get(lisingCategory);
+router.route("/listing/getTop5Category").get(getTopCategory);
 
 router.route("/listing/add").put(validUser, RegNewListing);
 

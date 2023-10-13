@@ -17,6 +17,8 @@ const {
   ListingStats,
   deleteUserListing,
   getTopRatingUser,
+  reviewOnMylisting,
+  updateUserReview,
 } = require("../controllers/userController");
 const router = express.Router();
 
@@ -30,12 +32,15 @@ router.route("/u-verify/:vcode/:uid").get(verifyUserLink);
 router
   .route("/user/reviews")
   .get(validUser, getUserReviews)
-  .delete(validUser, deteteUserReviews);
+  .delete(validUser, deteteUserReviews)
+  .patch(validUser, updateUserReview);
 
 router
   .route("/user")
   .get(validUser, GetUserData)
   .post(validUser, updateUserData);
+
+router.route("/user/reviews/:id").get(validUser, reviewOnMylisting);
 
 router.route("/user-l").post(createUserWithListing);
 router

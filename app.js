@@ -3,6 +3,7 @@ const express = require("express");
 const helmet = require("helmet");
 const dotenv = require("dotenv");
 const fs = require("fs");
+const { PrismaClient } = require("@prisma/client");
 
 const bodyParser = require("body-parser");
 
@@ -18,11 +19,11 @@ const userRouter = require("./routes/userRoutes");
 const contentRouter = require("./routes/contentRoutes");
 const companyRouter = require("./routes/companyListing");
 const adminRoutes = require("./routes/adminRoutes");
+const reviewRoutes = require("./routes/reviewsRoutes");
 
 // -------------------------------------------------
 
 const AppError = require("./utils/appError");
-const sendEmail = require("./utils/email");
 
 // *-------------------------------------
 
@@ -75,18 +76,15 @@ app.use("/api/v1", userRouter);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/company", companyRouter);
 app.use("/api/v1/content", contentRouter);
+app.use("/api/v1/review", reviewRoutes);
 
 // * ---------------------------
+
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 app.use(globalErrorHandler);
-
-// const DB = process.env.DATABASE.replace(
-//   "<PASSWORD>",
-//   process.env.DATABASE_PASSWORD
-// );
 
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);

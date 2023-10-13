@@ -1,30 +1,33 @@
+const { Prisma, PrismaClient } = require("@prisma/client");
 const AppError = require("./../utils/appError");
 
-const handleCastErrorDB = (err) => {
-  const message = `Invalid ${err.path}: ${err.value}.`;
+const handlePrismaUniqueConstraintError = (err) => {
+  const val = err.target.split("_")[1];
+
+  const message = `Duplicate field value: ${val}. Please use another value!`;
   return new AppError(message, 400);
 };
 
-const handleDuplicateFieldsDB = (err) => {
-  const value = Object.values(err.keyValue).map((e) => e)[0];
-
-  const message = `Duplicate field value: ${value}. Please use another value!`;
-  return new AppError(message, 400);
-};
-
-const handleValidationErrorDB = (err) => {
-  const errors = Object.values(err.errors).map((el) => el.message);
-  const message = `Invalid input data. ${errors.join(". ")}`;
+const handlePrismaValidationError = (err) => {
+  const errorMessage = err.message.split("\n").pop();
+  const message = `Invalid input data. ${errorMessage}`;
   return new AppError(message, 400);
 };
 
 const sendErrorDev = (err, res) => {
-  res.status(err.statusCode).json({
-    status: err.status,
-    error: err,
-    message: err.message,
-    stack: err.stack,
-  });
+  if (err.isOperational) {
+    res.status(err.statusCode).json({
+      status: err.status,
+      message: err.message,
+    });
+  } else {
+    console.error("ERROR 💥", err);
+
+    res.status(500).json({
+      status: "error",
+      message: "Something went very wrong!",
+    });
+  }
 };
 
 const sendErrorProd = (err, res) => {
@@ -34,31 +37,49 @@ const sendErrorProd = (err, res) => {
       message: err.message,
     });
   } else {
+    console.error("ERROR 💥", err);
+
     res.status(500).json({
       status: "error",
-      message: "Something went very wrong!",
+      message: "Something went wrong!",
     });
   }
 };
 
-module.exports = (err, req, res, next) => {
+module.exports = async (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
   console.log(err);
 
   if (process.env.NODE_ENV === "development") {
-    console.log(err, "dev");
+    if (err instanceof Prisma.PrismaClientValidationError) {
+      const prismaValidationError = handlePrismaValidationError(err);
+      return sendErrorDev(prismaValidationError, res);
+    }
+
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === "P2002") {
+        const prismaUniqueConstraintError = handlePrismaUniqueConstraintError(
+          err.meta
+        );
+        return sendErrorDev(prismaUniqueConstraintError, res);
+      }
+    }
+
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === "production") {
     let error = err;
 
-    if (error.name === "CastError") error = handleCastErrorDB(error);
-    if (error.code === 11000) error = handleDuplicateFieldsDB(error);
-    if (error.name === "ValidationError")
-      error = handleValidationErrorDB(error);
-    if (error._message === "User validation failed")
-      error = handleValidationErrorDB(error);
+    if (err instanceof Prisma.PrismaClientValidationError) {
+      error = handlePrismaValidationError(err);
+    }
+
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === "P2002") {
+        error = handlePrismaUniqueConstraintError(err.meta);
+      }
+    }
 
     sendErrorProd(error, res);
   }

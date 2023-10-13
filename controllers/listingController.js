@@ -4,23 +4,28 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const sendEmail = require("../utils/email");
 
-const ObjectId = require("mongodb").ObjectId;
-
 const natural = require("natural");
 
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+
 exports.createCompanyListing = catchAsync(async (req, res, next) => {
-  const isListed = await companyModal.findOne({
-    websiteLink: req.body.websiteLink,
+  const existingListing = await prisma.companyListing.findFirst({
+    where: {
+      websiteLink: req.body.websiteLink,
+    },
   });
 
-  if (isListed) {
+  if (existingListing) {
     res.status(200).json({
       message: "success",
       status: 200,
-      data: isListed,
+      data: existingListing,
     });
   } else {
-    const newListing = await companyModal.create(req.body);
+    const newListing = await prisma.companyListing.create({
+      data: req.body,
+    });
 
     res.status(200).json({
       message: "success",
@@ -31,7 +36,9 @@ exports.createCompanyListing = catchAsync(async (req, res, next) => {
 });
 
 exports.reviewPostHandler = catchAsync(async (req, res, next) => {
-  const review = await reviewModal.create(req.body);
+  const review = await prisma.review.create({
+    data: req.body,
+  });
 
   res.status(201).json({
     message: "success",
@@ -41,60 +48,45 @@ exports.reviewPostHandler = catchAsync(async (req, res, next) => {
 });
 
 exports.getReviewHandler = catchAsync(async (req, res, next) => {
-  const review = await reviewModal.aggregate([
-    {
-      $match: {
-        listingId: req.query.id,
-        active: true,
+  const reviews = await prisma.review.findMany({
+    where: {
+      listingId: req.query.id,
+      active: true,
+    },
+    include: {
+      user: {
+        select: {
+          name: true,
+          image: true,
+        },
       },
     },
-    {
-      $addFields: {
-        newuserid: { $toObjectId: "$userId" },
-      },
+    orderBy: {
+      createdAt: "desc",
     },
-    {
-      $lookup: {
-        from: "users",
-        localField: "newuserid",
-        foreignField: "_id",
-        as: "user",
-      },
-    },
-    {
-      $unwind: "$user",
-    },
-    {
-      $unset: [
-        "user._id",
-        "user.password",
-        "user.verified",
-        "user.verification",
-        "user.createAt",
-        "user.email",
-      ],
-    },
-  ]);
+  });
 
   res.status(200).json({
     message: "success",
     status: 200,
-    data: review,
+    data: reviews,
   });
 });
 
 exports.claimListingHandler = catchAsync(async (req, res, next) => {
+  console.log(req.body);
+
   const code = require("crypto").randomBytes(14).toString("hex");
   const message = `your verification link \n https://reviewsix.vercel.app/api/v1/company/listing/verify/${code}/${req.body.userId}`;
 
-  const review = await companyModal.findByIdAndUpdate(
-    {
-      _id: req.body.id,
+  const review = await prisma.companyListing.update({
+    where: {
+      id: req.body.id,
     },
-    {
+    data: {
       verifyCode: code,
-    }
-  );
+    },
+  });
 
   try {
     await sendEmail({
@@ -117,8 +109,10 @@ exports.claimListingHandler = catchAsync(async (req, res, next) => {
 });
 
 exports.RegNewListing = catchAsync(async (req, res, next) => {
-  const isListed = await companyModal.findOne({
-    websiteLink: req.body.websiteLink,
+  const isListed = await prisma.companyListing.findFirst({
+    where: {
+      websiteLink: req.body.websiteLink,
+    },
   });
 
   if (isListed) {
@@ -128,7 +122,9 @@ exports.RegNewListing = catchAsync(async (req, res, next) => {
       data: isListed,
     });
   } else {
-    const newListing = await companyModal.create(req.body);
+    const newListing = await prisma.companyListing.create({
+      data: { ...req.body },
+    });
 
     res.status(200).json({
       message: "success",
@@ -139,7 +135,11 @@ exports.RegNewListing = catchAsync(async (req, res, next) => {
 });
 
 exports.findRegCompany = catchAsync(async (req, res, next) => {
-  const listing = await companyModal.findOne({ _id: req.params.id });
+  const listing = await prisma.companyListing.findFirst({
+    where: {
+      id: req.params.id,
+    },
+  });
 
   res.status(200).json({
     message: "success",
@@ -149,9 +149,11 @@ exports.findRegCompany = catchAsync(async (req, res, next) => {
 });
 
 exports.updateListing = catchAsync(async (req, res, next) => {
-  const listing = await companyModal.findOneAndUpdate(
-    { _id: req.body.id },
-    {
+  const updatedListing = await prisma.companyListing.update({
+    where: {
+      id: req.body.id,
+    },
+    data: {
       about: req.body.about,
       address: req.body.address,
       categoryId: req?.body?.categoryId?.toLowerCase(),
@@ -162,32 +164,34 @@ exports.updateListing = catchAsync(async (req, res, next) => {
       city: req.body.city,
       pincode: req.body.pincode,
       physical: req.body.physical,
-    }
-  );
+    },
+  });
 
   res.status(200).json({
     message: "success",
     status: 200,
-    data: listing,
+    data: updatedListing,
   });
 });
 
 exports.verifiyListingConfirmation = catchAsync(async (req, res, next) => {
-  const isList = await companyModal.findOne({
-    verifyCode: req.params.vcode,
-    status: false,
+  const isList = await prisma.companyListing.findFirst({
+    where: {
+      verifyCode: req.params.vcode,
+      status: false,
+    },
   });
 
   if (isList) {
-    await companyModal.findOneAndUpdate(
-      {
+    await prisma.companyListing.updateMany({
+      where: {
         verifyCode: req.params.vcode,
       },
-      {
+      data: {
         status: true,
         userId: req.params.uid,
-      }
-    );
+      },
+    });
 
     res.send("<h3>verification complete check your account</h3>");
   } else {
@@ -199,58 +203,45 @@ exports.listingByCateController = catchAsync(async (req, res, next) => {
   const page = req.query.page * 1 || 1;
   const skip = (page - 1) * 8;
 
-  const data = await companyModal.aggregate([
-    {
-      $match: {
-        $or: [{ categoryId: req.params.id }],
-      },
-    },
-    {
-      $addFields: {
-        listid: {
-          $toString: "$_id",
-        },
-      },
-    },
-    {
-      $lookup: {
-        from: "reveiws",
-        localField: "listid",
-        foreignField: "listingId",
-        as: "reviews",
-      },
-    },
-    {
-      $addFields: {
-        averageRating: { $avg: "$reviews.rating" },
-        totalReviews: { $size: "$reviews" },
-      },
-    },
-    {
-      $unset: "reviews",
-    },
-    {
-      $limit: 8,
-    },
-    {
-      $skip: skip,
-    },
-  ]);
+  req.params.id = req.params.id.replaceAll("-", " ");
 
-  let size = await companyModal.aggregate([
-    {
-      $match: {
-        $or: [{ categoryId: req.params.id }, { subcategoryid: req.params.id }],
-      },
-    },
-    {
-      $count: "size",
-    },
-  ]);
+  const data = await prisma.$queryRaw`
+  SELECT
+    c.*,
+    CAST(AVG(r.rating) AS DECIMAL(10, 2)) AS averageRating,
+    CAST(COUNT(r.id) AS DECIMAL(10, 0)) AS totalReviews
+  FROM
+    company_listings c
+  LEFT JOIN
+    reviews r ON c.id = r.listingId
+  WHERE
+    c.categoryId = ${req.params.id}
+  GROUP BY
+    c.id
+  LIMIT
+    8
+  OFFSET
+    ${skip};
+`;
+
+  const size = await prisma.$queryRaw`
+  SELECT
+    COUNT(id) AS size
+  FROM
+  company_listings
+  WHERE
+    categoryId = ${req.params.id};
+`;
+
+  function toJson(data) {
+    return JSON.stringify(data, (_, v) =>
+      typeof v === "bigint" ? `${v}n` : v
+    ).replace(/"(-?\d+)n"/g, (_, a) => a);
+  }
 
   res.status(200).json({
     message: "success",
-    length: size[0]?.size || 0,
+    length: +toJson(size[0].size) || 0,
     data,
   });
 });
@@ -265,7 +256,7 @@ exports.getCategoryReviews = catchAsync(async (req, res, next) => {
     {
       $addFields: {
         listid: {
-          $toString: "$_id",
+          $toString: "$id",
         },
       },
     },
@@ -279,7 +270,7 @@ exports.getCategoryReviews = catchAsync(async (req, res, next) => {
     },
     {
       $project: {
-        _id: 0,
+        id: 0,
         reviews: 1,
         websiteLink: 1,
         logo: 1,
@@ -300,35 +291,21 @@ exports.getCategoryReviews = catchAsync(async (req, res, next) => {
 });
 
 exports.getReviewByCategory = catchAsync(async (req, res, err) => {
-  const data = await companyModal.aggregate([
-    {
-      $match: { categoryId: req.params.id },
+  let data = await prisma.companyListing.findMany({
+    where: {
+      categoryId: req.params.id,
     },
-    {
-      $addFields: {
-        i: { $toString: "$_id" },
-      },
+    include: {
+      Review: true,
     },
-    {
-      $lookup: {
-        from: "reveiws",
-        localField: "i",
-        foreignField: "listingId",
-        as: "reviews",
-      },
-    },
-    {
-      $project: {
-        reviews: 1,
-        websiteLink: 1,
-        logo: 1,
-        _id: 0,
-      },
-    },
-    {
-      $unwind: "$reviews",
-    },
-  ]);
+  });
+
+  data = data
+    .flatMap((e) =>
+      e.Review.map((l) => ({ ...l, websiteLink: e.websiteLink, logo: e.logo }))
+    )
+
+    .filter((e) => e.active === true);
 
   res.status(200).json({
     message: "success",
@@ -337,43 +314,83 @@ exports.getReviewByCategory = catchAsync(async (req, res, err) => {
 });
 
 exports.replyUserReviews = catchAsync(async (req, res, err) => {
-  await reviewModal.findOneAndUpdate(
-    { _id: req.body.id },
-    {
-      $push: {
-        response: {
-          reply: req.body.reply,
-          date: Date.now(),
-        },
-      },
+  await prisma.review.updateMany({
+    where: {
+      id: req.body.id,
     },
-    { new: true, runValidators: true }
-  );
+    data: {
+      reply: req.body.reply,
+    },
+  });
 
   res.status(200).json({
     message: "success",
   });
 });
 
+exports.lisingCategory = catchAsync(async (req, res, err) => {
+  const page = req.query.page || 1;
+  const limit = 18;
+  const skip = limit * (page - 1);
+  const patter =
+    req.query.filter && req.query.filter.length === 1 ? req.query.filter : "A";
+
+  const filterQuery = req.query.filter ? { title: { startsWith: patter } } : {};
+
+  let data;
+  if (!req.query.puchi) {
+    data = await prisma.category.findMany({
+      skip: skip,
+      take: limit,
+      orderBy: {
+        title: "asc",
+      },
+      where: {
+        ...filterQuery,
+      },
+    });
+  } else {
+    data = await prisma.category.findMany({});
+  }
+
+  const length = await prisma.category.count({
+    where: {
+      ...filterQuery,
+    },
+  });
+
+  res.status(200).json({
+    message: "success",
+    data,
+    length,
+  });
+});
+
+exports.getTopCategory = catchAsync(async (req, res, err) => {
+  const data = await prisma.category.findMany({
+    where: {
+      onTop: true,
+    },
+  });
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
+
 exports.ListingSearch = catchAsync(async (req, res, next) => {
-  const searchQuery = req.params.id;
-
-  const allDocuments = await companyModal.find({});
+  const searchQuery = req.params.id.toLowerCase();
+  const allDocuments = await prisma.companyListing.findMany();
   const results = [];
-
-  const tokenizer = new natural.WordTokenizer();
-  const queryTokens = tokenizer.tokenize(searchQuery.toLowerCase());
-
-  allDocuments.forEach((doc) => {
-    const titleTokens = tokenizer.tokenize(
-      doc.websiteLink.split(".")[0].toLowerCase()
-    );
+  const queryTokens = searchQuery.split(" ");
+  for (const doc of allDocuments) {
+    const titleTokens = doc.websiteLink.split(".")[0].toLowerCase().split(" ");
     const titleScore = calculateSimilarityScore(queryTokens, titleTokens);
-
     if (titleScore > 0.5) {
       results.push(doc);
     }
-  });
+  }
   const top5Results = results.slice(0, 5);
 
   res.status(200).json({

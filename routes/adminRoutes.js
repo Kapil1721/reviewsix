@@ -16,6 +16,10 @@ const {
   getBlogCommentData,
   bulkUploaderController,
   updateListingStatus,
+  deleteCategory,
+  updateCateory,
+  updateTopCategoryStatus,
+  updateTopUserStatus,
 } = require("../controllers/adminController");
 const {
   blogCommentDeleteHandler,
@@ -30,7 +34,12 @@ router
   .get(getReviewData)
   .delete(deleteReviewData)
   .post(updateStatus);
-router.route("/user/:id?").get(getUserData).delete(deleteUserData);
+
+router
+  .route("/user/:id?")
+  .get(getUserData)
+  .delete(deleteUserData)
+  .patch(updateTopUserStatus);
 
 router
   .route("/listing/:id?")
@@ -56,6 +65,12 @@ router
   .get(getBlogCommentData)
   .delete(blogCommentDeleteHandler)
   .patch(changeActiveStatus);
+
+router
+  .route("/business-category/:id?")
+  .delete(deleteCategory)
+  .patch(updateCateory)
+  .put(updateTopCategoryStatus);
 
 router.route("/bulk").post(bulkUploaderController);
 

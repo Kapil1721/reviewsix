@@ -6,6 +6,9 @@ const AppError = require("../utils/appError");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -13,7 +16,7 @@ const signToken = (id) => {
 };
 
 const createSendToken = (user, statusCode, res) => {
-  const token = signToken(user._id);
+  const token = signToken(user.id);
 
   user.password = undefined;
 
@@ -29,14 +32,18 @@ const createSendToken = (user, statusCode, res) => {
 exports.userSignup = catchAsync(async (req, res, next) => {
   const varificationToken = crypto.randomBytes(24).toString("hex");
 
-  const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    verification: varificationToken,
+  const cryptPassword = await bcrypt.hash(req.body.password, 12);
+
+  const newUser = await prisma.user.create({
+    data: {
+      name: req.body.name,
+      email: req.body.email,
+      password: cryptPassword,
+      verification: varificationToken,
+    },
   });
 
-  const message = `Click this url to complete the verification process \n https://reviewsix.vercel.app/api/v1/u-verify/${varificationToken}/${newUser._id}`;
+  const message = `Click this url to complete the verification process \n https://reviewsix.vercel.app/api/v1/u-verify/${varificationToken}/${newUser.id}`;
 
   try {
     await sendEmail({
@@ -60,9 +67,14 @@ exports.userLogin = catchAsync(async (req, res, next) => {
   if (!email || !password) {
     return next(new AppError("Please provide email and password!", 400));
   }
-  const user = await User.findOne({ email }).select("+password");
 
-  if (!user || !(await user.correctPassword(password, user.password))) {
+  const user = await prisma.user.findFirst({
+    where: {
+      email: email,
+    },
+  });
+
+  if (!user || !(await bcrypt.compare(password, user.password))) {
     return next(new AppError("Incorrect email or password", 401));
   }
 
@@ -116,7 +128,7 @@ exports.validUser = (req, res, next) => {
 };
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
-  const user = await User.findOne({ _id: req.body.userId }).select("+password");
+  const user = await User.findOne({ id: req.body.userId }).select("+password");
 
   if (
     !user ||
@@ -128,7 +140,7 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   const p = await bcrypt.hash(req.body.newpassword, 12);
 
   const updated = await User.findByIdAndUpdate(
-    { _id: req.body.userId },
+    { id: req.body.userId },
     { password: p }
   );
 
@@ -140,7 +152,7 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 
 exports.verifyUserLink = catchAsync(async (req, res, next) => {
   const isUser = await User.findOne({
-    _id: req.params.uid,
+    id: req.params.uid,
     verification: req.params.vcode,
     verified: false,
   });
@@ -148,7 +160,7 @@ exports.verifyUserLink = catchAsync(async (req, res, next) => {
   if (isUser) {
     await User.findOneAndUpdate(
       {
-        _id: req.params.uid,
+        id: req.params.uid,
       },
       {
         verified: true,
@@ -160,3 +172,6 @@ exports.verifyUserLink = catchAsync(async (req, res, next) => {
     res.send(`<p style='text-align:center;color:red;'>Link expired ...</p>`);
   }
 });
+
+//8921657a-4500-413f-9aed-c7630e03c1a8
+//91155c07-57fe-4d71-b04f-eaa85a3c3693

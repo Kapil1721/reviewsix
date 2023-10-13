@@ -6,6 +6,11 @@ const sendEmail = require("../utils/email");
 
 const fs = require("fs");
 
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+
+const bcrypt = require("bcryptjs");
+
 exports.getUserReviews = catchAsync(async (req, res, next) => {
   const page = req.query.page * 1 || 1;
   const skip = (page - 1) * 5;
@@ -14,43 +19,26 @@ exports.getUserReviews = catchAsync(async (req, res, next) => {
     req.query.f === "true" ? true : req.query.f === "false" ? false : null;
   const o = req.query.f !== "all" && req.query.f ? { active: tf } : {};
 
-  const totalCount = await reviewModal.aggregate([
-    {
-      $match: { userId: req.body.userId, ...o },
+  const totalCount = await prisma.review.findMany({
+    where: {
+      userId: req.body.userId,
+      ...o,
     },
-    {
-      $count: "totalCount",
-    },
-  ]);
+  });
 
-  const totalDocuments = totalCount[0] ? totalCount[0].totalCount : 0;
+  const totalDocuments = totalCount.length ?? 0;
 
-  const review = await reviewModal.aggregate([
-    {
-      $match: { userId: req.body.userId, ...o },
+  const review = await prisma.review.findMany({
+    where: {
+      userId: req.body.userId,
+      ...o,
     },
-    { $addFields: { plisting: { $toObjectId: "$listingId" } } },
-    {
-      $lookup: {
-        from: "companylistings",
-        localField: "plisting",
-        foreignField: "_id",
-        as: "companyDetails",
-      },
+    include: {
+      listing: true,
     },
-    {
-      $unwind: "$companyDetails",
-    },
-    {
-      $unset: "companyDetails._id",
-    },
-    {
-      $skip: skip,
-    },
-    {
-      $limit: 5,
-    },
-  ]);
+    skip: skip,
+    take: 5,
+  });
 
   res.status(200).json({
     length: totalDocuments,
@@ -61,8 +49,10 @@ exports.getUserReviews = catchAsync(async (req, res, next) => {
 });
 
 exports.deteteUserReviews = catchAsync(async (req, res, next) => {
-  const deletdReview = await reviewModal.findByIdAndDelete({
-    _id: req.query.id,
+  const deletdReview = await prisma.review.delete({
+    where: {
+      id: req.query.id,
+    },
   });
 
   res.status(200).json({
@@ -73,9 +63,19 @@ exports.deteteUserReviews = catchAsync(async (req, res, next) => {
 });
 
 exports.GetUserData = catchAsync(async (req, res, next) => {
-  const userData = await User.findById(req.body.userId).select(
-    "-_id -verification"
-  );
+  const userData = await prisma.user.findUnique({
+    where: {
+      id: req.body.userId,
+    },
+    select: {
+      id: false,
+      verification: false,
+      name: true,
+      email: true,
+      verified: true,
+      image: true,
+    },
+  });
 
   res.status(200).json({
     message: "success",
@@ -85,17 +85,17 @@ exports.GetUserData = catchAsync(async (req, res, next) => {
 });
 
 exports.updateUserData = catchAsync(async (req, res, next) => {
-  const userData = await User.findByIdAndUpdate(
-    {
-      _id: req.body.userId,
+  const userData = await prisma.user.update({
+    where: {
+      id: req.body.userId,
     },
-    {
+    data: {
       name: req.body.name,
       phone: req.body.phone,
       address: req.body.address,
       image: req.body.image,
-    }
-  );
+    },
+  });
 
   res.status(200).json({
     message: "success",
@@ -112,52 +112,69 @@ exports.getUserListing = catchAsync(async (req, res, next) => {
     req.query.f === "true" ? true : req.query.f === "false" ? false : null;
   const o = req.query.f !== "all" && req.query.f ? { hasadmin: tf } : {};
 
-  const totalCount = await companyModal.aggregate([
-    {
-      $match: { userId: req.body.userId, ...o },
-    },
-    {
-      $count: "totalCount",
-    },
+  const [listingData, totalDocuments] = await Promise.all([
+    prisma.companyListing.findMany({
+      where: {
+        userId: req.body.userId,
+        ...o,
+      },
+      select: {
+        id: true,
+        companyName: true,
+        categoryId: true,
+        websiteLink: true,
+        logo: true,
+      },
+      skip: skip,
+      take: 5,
+    }),
+    prisma.companyListing.count({
+      where: {
+        userId: req.body.userId,
+        ...o,
+      },
+    }),
   ]);
 
-  const totalDocuments = totalCount[0] ? totalCount[0].totalCount : 0;
+  const listingIds = listingData.map((listing) => listing.id);
 
-  let listingData = await companyModal.aggregate([
-    {
-      $match: { userId: req.body.userId, ...o },
-    },
-    {
-      $addFields: {
-        listid: {
-          $toString: "$_id",
-        },
+  const reviews = await prisma.review.findMany({
+    where: {
+      listingId: {
+        in: listingIds,
       },
     },
-    {
-      $lookup: {
-        from: "reveiws",
-        localField: "listid",
-        foreignField: "listingId",
-        as: "reviews",
-      },
+    select: {
+      rating: true,
     },
-    {
-      $addFields: {
-        averageRating: { $avg: "$reviews.rating" },
-        totalReviews: { $sum: { $size: "$reviews" } },
-      },
-    },
-    {
-      $unset: "reviews",
-    },
-    {
-      $skip: skip,
-    },
-    {
-      $limit: 5,
-    },
-  ]);
+  });
+
+  const reviewsMap = {};
+
+  reviews.forEach((review) => {
+    if (!reviewsMap[review.listingId]) {
+      reviewsMap[review.listingId] = {
+        totalRating: 0,
+        totalReviews: 0,
+      };
+    }
+    reviewsMap[review.listingId].totalRating += review.rating;
+    reviewsMap[review.listingId].totalReviews += 1;
+  });
+
+  listingData.forEach((listing) => {
+    const reviewStats = reviewsMap[listing.id];
+    if (reviewStats) {
+      listing.averageRating =
+        reviewStats.totalReviews > 0
+          ? reviewStats.totalRating / reviewStats.totalReviews
+          : 0;
+      listing.totalReviews = reviewStats.totalReviews;
+    } else {
+      listing.averageRating = 0;
+      listing.totalReviews = 0;
+    }
+  });
 
   res.status(200).json({
     length: totalDocuments,
@@ -168,7 +185,9 @@ exports.getUserListing = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteUserListing = catchAsync(async (req, res, next) => {
-  await companyModal.findByIdAndDelete(req.params.id);
+  await prisma.companyListing.delete({
+    where: { id: req.params.id },
+  });
 
   res.status(204).json({
     message: "listing deleted Successfully",
@@ -176,36 +195,40 @@ exports.deleteUserListing = catchAsync(async (req, res, next) => {
 });
 
 exports.createUserWithListing = catchAsync(async (req, res, next) => {
-  let password = require("crypto").randomBytes(12).toString("hex");
+  let password = require("crypto").randomBytes(6).toString("hex");
   password = require("crypto")
     .createHash("sha256")
     .update(password)
     .digest("hex");
 
-  const code = require("crypto").randomBytes(14).toString("hex");
+  const code = require("crypto").randomBytes(6).toString("hex");
 
-  const newuser = await User.create({
-    email: req.body.email,
-    name: req.body.email.split("@")[0],
-    password,
-    verified: true,
+  const cryptPassword = await bcrypt.hash(password, 12);
+
+  const newuser = await prisma.user.create({
+    data: {
+      email: req.body.email,
+      name: req.body.email.split("@")[0],
+      password: cryptPassword,
+      verified: true,
+    },
   });
 
   newuser.password = undefined;
 
   const message = `Your new account has been successfully created. Here are your account details : \n
   ,your email: ${req.body.email} and password: ${password} \n
-  your verification link to verify your listing is  \n https://reviewsix.vercel.app/api/v1/company/listing/verify/${code}/${newuser._id}
+  your verification link to verify your listing is  \n https://reviewsix.vercel.app/api/v1/company/listing/verify/${code}/${newuser.id}
   `;
 
-  await companyModal.findOneAndUpdate(
-    {
+  await prisma.companyListing.update({
+    where: {
       websiteLink: req.body.email.split("@")[1],
     },
-    {
+    data: {
       verifyCode: code,
-    }
-  );
+    },
+  });
 
   let x = fs.readFileSync(__dirname + "/emailTemp.html", "utf8");
 
@@ -215,7 +238,7 @@ exports.createUserWithListing = catchAsync(async (req, res, next) => {
     .replace("{{password}}", password)
     .replace(
       "{{link}}",
-      `https://reviewsix.vercel.app/api/v1/company/listing/verify/${code}/${newuser._id}`
+      `https://reviewsix.vercel.app/api/v1/company/listing/verify/${code}/${newuser.id}`
     );
 
   try {
@@ -239,25 +262,27 @@ exports.createUserWithListing = catchAsync(async (req, res, next) => {
 });
 
 exports.reviewStats = catchAsync(async (req, res, err) => {
-  const data = await reviewModal.aggregate([
-    {
-      $match: { userId: req.body.userId },
-    },
-    {
-      $group: {
-        _id: "$active",
-        total: { $sum: 1 },
-      },
-    },
-  ]);
+  const userId = req.body.userId;
 
-  const result = data.reduce((acc, e) => {
-    acc[e._id] = e.total;
-    return acc;
-  }, {});
+  const reviewCounts = await prisma.review.groupBy({
+    by: ["active"],
+    _count: {
+      _all: true,
+    },
+    where: {
+      userId: userId,
+    },
+  });
+
+  const stats = {};
+  for (const { active, _count } of reviewCounts) {
+    stats[active] = _count._all;
+  }
 
   res.status(200).json({
-    data: result,
+    message: "Success",
+    status: 200,
+    data: stats,
   });
 });
 
@@ -317,21 +342,53 @@ exports.getTopRatingUser = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.ListingStats = catchAsync(async (req, res, err) => {
-  const data = await companyModal.aggregate([
-    {
-      $match: { userId: req.body.userId },
-    },
-    {
-      $group: {
-        _id: "$hasadmin",
-        total: { $sum: 1 },
-      },
-    },
-  ]);
+exports.reviewOnMylisting = catchAsync(async (req, res, next) => {
+  console.log(req.params.id);
 
-  const result = data.reduce((acc, e) => {
-    acc[e._id] = e.total;
+  const data = await prisma.review.findMany({
+    where: {
+      listingId: req.params.id,
+    },
+  });
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
+
+exports.updateUserReview = catchAsync(async (req, res, next) => {
+  await prisma.review.updateMany({
+    where: {
+      id: req.body.id,
+    },
+    data: {
+      title: req.body.title,
+      review: req.body.review,
+      rating: req.body.rating,
+    },
+  });
+
+  res.status(200).json({
+    message: "updated",
+  });
+});
+
+exports.ListingStats = catchAsync(async (req, res, err) => {
+  const userId = req.body.userId;
+
+  const listingStats = await prisma.companyListing.groupBy({
+    by: ["hasadmin"],
+    _count: {
+      _all: true,
+    },
+    where: {
+      userId: userId,
+    },
+  });
+
+  const result = listingStats.reduce((acc, { hasadmin, _count }) => {
+    acc[hasadmin] = _count._all;
     return acc;
   }, {});
 
