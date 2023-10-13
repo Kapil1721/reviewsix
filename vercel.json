@@ -1,6 +1,9 @@
 {
   "version": 2,
   "name": "backend-server",
-  "builds": [{ "src": "app.js", "use": "@vercel/node" }],
+  "builds": [
+    { "src": "app.js", "use": "@vercel/node" },
+    { "src": "prisma/schema.prisma", "use": "@prisma/cli" }
+  ],
   "routes": [{ "src": "/(.*)", "dest": "app.js" }]
 }
