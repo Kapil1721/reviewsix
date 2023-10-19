@@ -20,6 +20,7 @@ const contentRouter = require("./routes/contentRoutes");
 const companyRouter = require("./routes/companyListing");
 const adminRoutes = require("./routes/adminRoutes");
 const reviewRoutes = require("./routes/reviewsRoutes");
+const businessRoute = require("./routes/businessRoutes/businessUserRoutes");
 
 // -------------------------------------------------
 
@@ -77,6 +78,7 @@ app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/company", companyRouter);
 app.use("/api/v1/content", contentRouter);
 app.use("/api/v1/review", reviewRoutes);
+app.use("/api/v1/business", businessRoute);
 
 // * ---------------------------
 

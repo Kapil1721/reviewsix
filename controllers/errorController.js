@@ -1,8 +1,10 @@
-const { Prisma, PrismaClient } = require("@prisma/client");
+const { Prisma } = require("@prisma/client");
 const AppError = require("./../utils/appError");
 
 const handlePrismaUniqueConstraintError = (err) => {
-  const val = err.target.split("_")[1];
+  const val = err.target.split("_").includes("email")
+    ? "email"
+    : err.target.split("_")[1];
 
   const message = `Duplicate field value: ${val}. Please use another value!`;
   return new AppError(message, 400);
