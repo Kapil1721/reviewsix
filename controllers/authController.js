@@ -9,6 +9,8 @@ const bcrypt = require("bcryptjs");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+const fs = require("fs");
+
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -43,13 +45,23 @@ exports.userSignup = catchAsync(async (req, res, next) => {
     },
   });
 
-  const message = `Click this url to complete the verification process \n https://reviewsix.vercel.app/api/v1/u-verify/${varificationToken}/${newUser.id}`;
+  const message = ``;
+
+  let x = fs.readFileSync(__dirname + "/accountRegister.html", "utf8");
+
+  let y = x
+    .replace("{{name}}", req.body.name)
+    .replace(
+      "{{link}}",
+      `https://reviewsix.vercel.app/api/v1/u-verify/${varificationToken}/${newUser.id}`
+    );
 
   try {
     await sendEmail({
       email: req.body.email,
       subject: "Your email verification code (valid for 5 days)",
       message,
+      html: y,
     });
 
     createSendToken(newUser, 201, res);
@@ -151,21 +163,23 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 });
 
 exports.verifyUserLink = catchAsync(async (req, res, next) => {
-  const isUser = await User.findOne({
-    id: req.params.uid,
-    verification: req.params.vcode,
-    verified: false,
+  const isUser = await prisma.user.findUnique({
+    where: {
+      id: req.params.uid,
+      verification: req.params.vcode,
+      verified: false,
+    },
   });
 
   if (isUser) {
-    await User.findOneAndUpdate(
-      {
+    await prisma.user.updateMany({
+      where: {
         id: req.params.uid,
       },
-      {
+      data: {
         verified: true,
-      }
-    );
+      },
+    });
 
     res.send(`<h3 style='text-align:center;'>Verification complete</h3>`);
   } else {

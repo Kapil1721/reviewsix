@@ -195,11 +195,7 @@ exports.deleteUserListing = catchAsync(async (req, res, next) => {
 });
 
 exports.createUserWithListing = catchAsync(async (req, res, next) => {
-  let password = require("crypto").randomBytes(6).toString("hex");
-  password = require("crypto")
-    .createHash("sha256")
-    .update(password)
-    .digest("hex");
+  let password = require("crypto").randomBytes(8).toString("hex");
 
   const code = require("crypto").randomBytes(6).toString("hex");
 
@@ -244,7 +240,7 @@ exports.createUserWithListing = catchAsync(async (req, res, next) => {
   try {
     await sendEmail({
       email: req.body.email,
-      subject: "Welcome to Software hub 360",
+      subject: "Welcome to the business rating",
       message,
       html: y,
     });
