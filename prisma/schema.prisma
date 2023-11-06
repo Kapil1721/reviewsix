@@ -140,6 +140,8 @@ model businessUsers {
   email        String    @unique
   website      String?   @db.VarChar(255)
   companyname  String?   @db.VarChar(255)
+  address      String?   @db.VarChar(255)
+  complete     Boolean?  @default(false)
   verified     Boolean   @default(false)
   password     String?   @db.VarChar(255)
   jobtitle     String?   @db.VarChar(255)
@@ -147,6 +149,8 @@ model businessUsers {
   country      String?   @db.VarChar(255)
   createdAt    DateTime? @default(now())
   verification String?   @db.VarChar(255)
+  acountType   String    @db.VarChar(255)
+  static_code  String?   @db.VarChar(255)
 
   @@map("business_users")
 }

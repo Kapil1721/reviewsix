@@ -10,6 +10,9 @@ const dns = require("dns");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+const fs = require("fs");
+const path = require("path");
+
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -19,14 +22,22 @@ const signToken = (id) => {
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user.id);
 
+  const jwtExpiresInMilliseconds =
+    parseInt(process.env.JWT_EXPIRES_IN) * 24 * 60 * 60 * 1000;
+
+  const cookieOptions = {
+    expires: new Date(Date.now() + jwtExpiresInMilliseconds),
+    // httpOnly: true,
+  };
+
+  // if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
+
+  res.cookie("jwt", token, cookieOptions);
+
   user.password = undefined;
 
   res.status(statusCode).json({
     status: "success",
-    token,
-    data: {
-      user,
-    },
   });
 };
 
@@ -61,19 +72,33 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
 
   const varificationToken = crypto.randomBytes(24).toString("hex");
 
+  if (req.body.static_code && req.body.acountType === "gmail") {
+    req.body.static_code = await bcrypt.hash(req.body.static_code, 10);
+  }
+
   const newUser = await prisma.businessUsers.create({
     data: {
+      verification: varificationToken,
       ...req.body,
     },
   });
 
-  const message = `Click this URL to complete the verification process \n https://reviewsix.vercel.app/api/v1/u-verify/${varificationToken}/${newUser.id}`;
+  const filePath = path.join(
+    __dirname,
+    "..",
+    "/controllers/accountRegister.html"
+  );
+  const hog = fs.readFileSync(filePath, "utf8");
+
+  const message = `https://business.thebusinessrating.com/password/${varificationToken}/${newUser.id}`;
 
   try {
     await sendEmail({
       email: req.body.email,
-      subject: "Your email verification code (valid for 5 days)",
-      message,
+      subject: "Your Account Verification",
+      html: hog
+        .replace("{{link}}", message)
+        .replace("{{name}}", req.body.fname),
     });
 
     createSendToken(newUser, 201, res);
@@ -85,6 +110,70 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.completePasswordVerification = catchAsync(async (req, res, next) => {
+  if (!req.body.token && !req.body.id) {
+    res.status(401).json({
+      message: "verification complete! unauthorized user",
+    });
+  }
+
+  const user = await prisma.businessUsers.findFirst({
+    where: { verification: req.body.token, id: req.body.id, verified: false },
+  });
+
+  if (!user) {
+    res.status(401).json({
+      message: "verification complete! unauthorized user",
+    });
+  }
+
+  if (user && user.acountType === "gmail") {
+    await prisma.businessUsers.updateMany({
+      where: {
+        id: user.id,
+      },
+      data: {
+        verified: true,
+      },
+    });
+
+    res.status(203).json({
+      message: "verification complete",
+    });
+  }
+
+  if (user && user.acountType === "regular") {
+    res.status(200).json({
+      message: "verification complete",
+    });
+  }
+});
+
+exports.updatedpassword = catchAsync(async (req, res, next) => {
+  if (!req.body.password) {
+    res.status(400).json({
+      message: "invalid data. please complete the filds",
+    });
+  }
+
+  req.body.password = await bcrypt.hash(req.body.password, 10);
+
+  await prisma.businessUsers.update({
+    where: {
+      id: req.body.id,
+      verified: false,
+    },
+    data: {
+      password: req.body.password,
+      verified: true,
+    },
+  });
+
+  res.status(202).json({
+    message: "Password updated successfully",
+  });
+});
+
 exports.businessUserLogin = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -92,14 +181,24 @@ exports.businessUserLogin = catchAsync(async (req, res, next) => {
     return next(new AppError("Please provide email and password!", 400));
   }
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.businessUsers.findFirst({
     where: {
       email: email,
     },
   });
 
-  if (!user || !(await bcrypt.compare(password, user.password))) {
+  if (!user) {
     return next(new AppError("Incorrect email or password", 401));
+  }
+
+  if (user && user.acountType === "regular") {
+    if (!(await bcrypt.compare(password, user.password))) {
+      return next(new AppError("Incorrect email or password", 401));
+    }
+  } else if (user && user.acountType === "gmail") {
+    if (!(await bcrypt.compare(password, user.static_code))) {
+      return next(new AppError("Incorrect email or password", 401));
+    }
   }
 
   createSendToken(user, 200, res);
