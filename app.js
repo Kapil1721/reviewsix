@@ -1,6 +1,6 @@
 const express = require("express");
 const helmet = require("helmet");
-const mongoose = require("mongoose");
+
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -23,11 +23,6 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Connect to MongoDB
-mongoose
-  .connect(
-    "mongodb+srv://sahilEgss05:cEN2JXfKnB8OIZnk@cluster0.fku9vqp.mongodb.net/review-website"
-  )
-  .then(() => console.log("DB connection successful!"));
 
 // Middleware
 app.use(express.static(`${__dirname}`));
@@ -40,7 +35,12 @@ app.use(express.json());
 // Enable CORS
 app.use(
   cors({
-    origin: "*",
+    origin: [
+      "https://business.thebusinessrating.com",
+      "https://business.thebusinessrating.com",
+      "http://localhost",
+    ],
+    credentials: true,
   })
 );
 
