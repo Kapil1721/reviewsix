@@ -40,7 +40,6 @@ app.use(express.json());
 // Enable CORS
 app.use(
   cors({
-    credentials: true,
     origin: "*",
   })
 );
