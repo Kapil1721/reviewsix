@@ -28,6 +28,7 @@ const createSendToken = (user, statusCode, res) => {
   const cookieOptions = {
     expires: new Date(Date.now() + jwtExpiresInMilliseconds),
     httpOnly: true,
+    sameSite: "None",
   };
 
   if (process.env.NODE_ENV === "production") cookieOptions.secure = true;

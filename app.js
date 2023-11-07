@@ -37,7 +37,7 @@ app.use(
   cors({
     origin: [
       "https://business.thebusinessrating.com",
-      "https://business.thebusinessrating.com",
+      "https://thebusinessrating.com",
       "http://localhost",
     ],
     credentials: true,
