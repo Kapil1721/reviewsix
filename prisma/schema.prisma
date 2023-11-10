@@ -154,3 +154,22 @@ model businessUsers {
 
   @@map("business_users")
 }
+
+model businessPrimaryDetails {
+  id          String @id @default(uuid())
+  userid      String @db.VarChar(255)
+  colorScheme String @db.VarChar(255)
+  plantype    String @db.VarChar(255)
+  icon        String @db.VarChar(255)
+  banner      String @db.VarChar(255)
+
+  @@map("business_primary_details")
+}
+
+model businessMedia {
+  id         String @id @default(uuid())
+  media_type String @db.VarChar(255)
+  media_url  String @db.VarChar(255)
+
+  @@map("business_media")
+}

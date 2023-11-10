@@ -4,7 +4,14 @@ const {
   completePasswordVerification,
   updatedpassword,
   businessUserLogin,
+  validBusinessUser,
 } = require("../../business-controller/businessAuth");
+
+const {
+  userProfile,
+  upadateProfile,
+  upadatePassword,
+} = require("../../business-controller/businessProfileController");
 
 const router = express.Router();
 
@@ -14,5 +21,12 @@ router
   .route("/check-valid-pass")
   .post(completePasswordVerification)
   .put(updatedpassword);
+
+router
+  .route("/user")
+  .get(validBusinessUser, userProfile)
+  .put(validBusinessUser, upadateProfile);
+
+router.route("/user/updatePassword").put(validBusinessUser, upadatePassword);
 
 module.exports = router;

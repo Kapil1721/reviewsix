@@ -4,7 +4,7 @@ const helmet = require("helmet");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const { PrismaClient } = require("@prisma/client");
+var cookieParser = require("cookie-parser");
 
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
@@ -31,6 +31,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 app.use(express.json());
 app.use(helmet());
 app.use(express.json());
+app.use(cookieParser());
 
 // Enable CORS
 app.use(
