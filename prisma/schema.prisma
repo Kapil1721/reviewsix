@@ -134,42 +134,52 @@ model Category {
 // -------------------------------------------------------------------
 
 model businessUsers {
-  id           String    @id @default(uuid())
-  fname        String    @db.VarChar(255)
-  lname        String    @db.VarChar(255)
-  email        String    @unique
-  website      String?   @db.VarChar(255)
-  companyname  String?   @db.VarChar(255)
-  address      String?   @db.VarChar(255)
-  complete     Boolean?  @default(false)
-  verified     Boolean   @default(false)
-  password     String?   @db.VarChar(255)
-  jobtitle     String?   @db.VarChar(255)
-  phone        String?   @db.VarChar(255)
-  country      String?   @db.VarChar(255)
-  createdAt    DateTime? @default(now())
-  verification String?   @db.VarChar(255)
-  acountType   String    @db.VarChar(255)
-  static_code  String?   @db.VarChar(255)
+  id           String                   @id @default(uuid())
+  fname        String                   @db.VarChar(255)
+  lname        String                   @db.VarChar(255)
+  email        String                   @unique
+  website      String?                  @unique @db.VarChar(255)
+  companyname  String?                  @db.VarChar(255)
+  address      String?                  @db.VarChar(255)
+  complete     Boolean?                 @default(false)
+  verified     Boolean                  @default(false)
+  password     String?                  @db.VarChar(255)
+  jobtitle     String?                  @db.VarChar(255)
+  phone        String?                  @db.VarChar(255)
+  country      String?                  @db.VarChar(255)
+  createdAt    DateTime?                @default(now())
+  verification String?                  @db.VarChar(255)
+  acountType   String                   @db.VarChar(255)
+  static_code  String?                  @db.VarChar(255)
+  details      businessPrimaryDetails[]
+  media        businessMedia[]
 
   @@map("business_users")
 }
 
 model businessPrimaryDetails {
-  id          String @id @default(uuid())
-  userid      String @db.VarChar(255)
-  colorScheme String @db.VarChar(255)
-  plantype    String @db.VarChar(255)
-  icon        String @db.VarChar(255)
-  banner      String @db.VarChar(255)
+  id            String         @id @default(uuid())
+  userid        String?        @db.VarChar(255)
+  colorScheme   String?        @default("#02B9B5")
+  plantype      String?        @db.VarChar(255)
+  icon          String?        @db.VarChar(255)
+  banner        String?        @db.VarChar(255)
+  about         String?        @db.VarChar(255)
+  advertisement String?
+  sociallinks   Json?
+  taken         Boolean        @default(false)
+  website       String         @unique
+  businessUsers businessUsers? @relation(fields: [userid], references: [id])
 
   @@map("business_primary_details")
 }
 
 model businessMedia {
-  id         String @id @default(uuid())
-  media_type String @db.VarChar(255)
-  media_url  String @db.VarChar(255)
+  id              String         @id @default(uuid())
+  media_type      String         @db.VarChar(255)
+  media_url       String         @db.VarChar(255)
+  businessUsers   businessUsers? @relation(fields: [businessUsersId], references: [id])
+  businessUsersId String?
 
   @@map("business_media")
 }

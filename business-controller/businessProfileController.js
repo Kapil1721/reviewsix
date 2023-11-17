@@ -8,7 +8,10 @@ const prisma = new PrismaClient();
 exports.userProfile = catchAsync(async (req, res, next) => {
   const data = await prisma.businessUsers.findFirst({
     where: {
-      id: "56d6d26b-19aa-4202-bc37-93f164da35ab",
+      id: req.body.userId,
+    },
+    include: {
+      details: true,
     },
   });
 
@@ -65,6 +68,38 @@ exports.upadatePassword = catchAsync(async (req, res, next) => {
     },
     data: {
       password: req.body.newpassword,
+    },
+  });
+
+  res.status(200).json({
+    status: "success",
+    message: "password updated successfully",
+  });
+});
+
+exports.updateBusinessProfile = catchAsync(async (req, res, next) => {
+  await prisma.businessUsers.update({
+    where: {
+      id: req.body.userId,
+    },
+    data: {
+      address: req.body.location,
+      companyname: req.body.businessname,
+      website: req.body.website,
+    },
+  });
+
+  await prisma.businessPrimaryDetails.updateMany({
+    where: {
+      userid: req.body.userId,
+    },
+    data: {
+      about: req.body.about,
+      colorScheme: req.body.colorScheme,
+      sociallinks: JSON.stringify(req.body.socialLinks),
+      about: req.body.about,
+      icon: req.body.icon,
+      banner: req.body.banner,
     },
   });
 

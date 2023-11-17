@@ -11,6 +11,7 @@ const {
   userProfile,
   upadateProfile,
   upadatePassword,
+  updateBusinessProfile,
 } = require("../../business-controller/businessProfileController");
 
 const router = express.Router();
@@ -25,7 +26,8 @@ router
 router
   .route("/user")
   .get(validBusinessUser, userProfile)
-  .put(validBusinessUser, upadateProfile);
+  .put(validBusinessUser, upadateProfile)
+  .patch(validBusinessUser, updateBusinessProfile);
 
 router.route("/user/updatePassword").put(validBusinessUser, upadatePassword);
 

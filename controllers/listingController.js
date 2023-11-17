@@ -9,28 +9,67 @@ const natural = require("natural");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+function ensureHttps(url) {
+  if (!url.startsWith("https://")) {
+    return "https://" + url;
+  }
+  return url;
+}
+
 exports.createCompanyListing = catchAsync(async (req, res, next) => {
-  const existingListing = await prisma.companyListing.findFirst({
+  const securedUrl = ensureHttps(req.body.websiteLink);
+
+  const existingListing = await prisma.businessPrimaryDetails.findFirst({
     where: {
-      websiteLink: req.body.websiteLink,
+      website: {
+        contains: req.body.websiteLink,
+      },
     },
   });
 
+  console.log(existingListing);
+
   if (existingListing) {
-    res.status(200).json({
-      message: "success",
-      status: 200,
-      data: existingListing,
-    });
+    if (existingListing.taken) {
+      const data = await prisma.businessUsers.findFirst({
+        where: {
+          id: existingListing.userid,
+        },
+        include: {
+          details: true,
+        },
+      });
+
+      data.password = undefined;
+      data.static_code = undefined;
+      data.acountType = undefined;
+      data.complete = undefined;
+      data.verified = undefined;
+      data.verification = undefined;
+
+      res.status(200).json({
+        message: "success",
+        status: 200,
+        data,
+      });
+    } else {
+      res.status(200).json({
+        message: "success",
+        status: 200,
+        data: { details: [existingListing] },
+      });
+    }
   } else {
-    const newListing = await prisma.companyListing.create({
-      data: req.body,
+    const newListing = await prisma.businessPrimaryDetails.create({
+      data: {
+        website: securedUrl,
+      },
     });
 
     res.status(200).json({
       message: "success",
       status: 200,
-      data: newListing,
+      data: { details: [newListing] },
     });
   }
 });

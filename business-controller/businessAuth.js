@@ -78,12 +78,50 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
     req.body.static_code = await bcrypt.hash(req.body.static_code, 10);
   }
 
-  const newUser = await prisma.businessUsers.create({
-    data: {
-      verification: varificationToken,
-      ...req.body,
+  const notTaken = await prisma.businessPrimaryDetails.findFirst({
+    where: {
+      website: req.body.website,
+      taken: false,
     },
   });
+
+  if (notTaken) {
+    res.json({
+      message: "This website is already registered with us.",
+      status: "fail",
+    });
+  }
+
+  let newUser;
+
+  if (!notTaken) {
+    newUser = await prisma.businessUsers.create({
+      data: {
+        verification: varificationToken,
+        ...req.body,
+      },
+    });
+  }
+
+  console.log(notTaken);
+
+  if (notTaken && notTaken.website) {
+    await prisma.businessPrimaryDetails.create({
+      data: {
+        website: req.body.website,
+        taken: true,
+        userid: newUser.id,
+      },
+    });
+  } else {
+    await prisma.businessPrimaryDetails.create({
+      data: {
+        website: req.body.website,
+        taken: true,
+        userid: newUser.id,
+      },
+    });
+  }
 
   const filePath = path.join(
     __dirname,
