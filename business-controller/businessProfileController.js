@@ -17,7 +17,7 @@ exports.userProfile = catchAsync(async (req, res, next) => {
 
   data.password = undefined;
   data.static_code = undefined;
-  data.acountType = undefined;
+  // data.acountType = undefined;
   data.complete = undefined;
   data.verified = undefined;
   data.verification = undefined;
