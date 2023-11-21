@@ -83,33 +83,41 @@ exports.reviewPostHandler = catchAsync(async (req, res, next) => {
     data: req.body,
   });
 
-  const message = ``;
+  if (user) {
+    const message = ``;
 
-  let x = fs.readFileSync(__dirname + "/newReview.html", "utf8");
+    let x = fs.readFileSync(__dirname + "/newReview.html", "utf8");
 
-  let y = x
-    .replace("{{name}}", user.fname)
-    .replace("{{link}}", ``)
-    .replace("{{company}}", user.companyname);
+    let y = x
+      .replace("{{name}}", user.fname)
+      .replace("{{link}}", ``)
+      .replace("{{company}}", user.companyname);
 
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: "Your email verification code (valid for 5 days)",
-      message,
-      html: y,
-    });
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: "Your email verification code (valid for 5 days)",
+        message,
+        html: y,
+      });
 
+      res.status(201).json({
+        message: "success",
+        status: 201,
+        data: review,
+      });
+    } catch (err) {
+      return next(
+        new AppError("There was an error sending the email. Try again later!"),
+        500
+      );
+    }
+  } else {
     res.status(201).json({
       message: "success",
       status: 201,
       data: review,
     });
-  } catch (err) {
-    return next(
-      new AppError("There was an error sending the email. Try again later!"),
-      500
-    );
   }
 });
 
