@@ -66,6 +66,7 @@ exports.userSignup = catchAsync(async (req, res, next) => {
 
     createSendToken(newUser, 201, res);
   } catch (err) {
+
     return next(
       new AppError("There was an error sending the email. Try again later!"),
       500

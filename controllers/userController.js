@@ -34,7 +34,17 @@ exports.getUserReviews = catchAsync(async (req, res, next) => {
       ...o,
     },
     include: {
-      listing: true,
+      matrixid: {
+        select: {
+          companyname: true,
+          website: true,
+        },
+      },
+      listing: {
+        select: {
+          icon: true,
+        },
+      },
     },
     skip: skip,
     take: 5,
@@ -339,8 +349,6 @@ exports.getTopRatingUser = catchAsync(async (req, res, next) => {
 });
 
 exports.reviewOnMylisting = catchAsync(async (req, res, next) => {
-  console.log(req.params.id);
-
   const data = await prisma.review.findMany({
     where: {
       listingId: req.params.id,

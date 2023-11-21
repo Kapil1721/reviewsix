@@ -3,12 +3,13 @@ const catchAsync = require("../utils/catchAsync");
 const prisma = new PrismaClient();
 
 exports.reportReview = catchAsync(async (req, res, next) => {
+  console.log(req.body);
+
   await prisma.reviewReport.create({
     data: req.body,
   });
 
   res.status(201).json({
     message: "success",
-    // data,
   });
 });

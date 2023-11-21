@@ -9,6 +9,8 @@ const natural = require("natural");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+const fs = require("fs");
+
 function ensureHttps(url) {
   if (!url.startsWith("https://")) {
     return "https://" + url;
@@ -26,8 +28,6 @@ exports.createCompanyListing = catchAsync(async (req, res, next) => {
       },
     },
   });
-
-  console.log(existingListing);
 
   if (existingListing) {
     if (existingListing.taken) {
@@ -75,30 +75,53 @@ exports.createCompanyListing = catchAsync(async (req, res, next) => {
 });
 
 exports.reviewPostHandler = catchAsync(async (req, res, next) => {
+  const user = await prisma.businessUsers.findFirst({
+    where: { id: req.body.matrix },
+  });
+
   const review = await prisma.review.create({
     data: req.body,
   });
 
-  res.status(201).json({
-    message: "success",
-    status: 201,
-    data: review,
-  });
+  const message = ``;
+
+  let x = fs.readFileSync(__dirname + "/newReview.html", "utf8");
+
+  let y = x
+    .replace("{{name}}", user.fname)
+    .replace("{{link}}", ``)
+    .replace("{{company}}", user.companyname);
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "Your email verification code (valid for 5 days)",
+      message,
+      html: y,
+    });
+
+    res.status(201).json({
+      message: "success",
+      status: 201,
+      data: review,
+    });
+  } catch (err) {
+    return next(
+      new AppError("There was an error sending the email. Try again later!"),
+      500
+    );
+  }
 });
 
 exports.getReviewHandler = catchAsync(async (req, res, next) => {
+  console.log(req.query);
   const reviews = await prisma.review.findMany({
     where: {
-      listingId: req.query.id,
+      matrix: req.query.id,
       active: true,
     },
     include: {
-      user: {
-        select: {
-          name: true,
-          image: true,
-        },
-      },
+      user: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -113,8 +136,6 @@ exports.getReviewHandler = catchAsync(async (req, res, next) => {
 });
 
 exports.claimListingHandler = catchAsync(async (req, res, next) => {
-  console.log(req.body);
-
   const code = require("crypto").randomBytes(14).toString("hex");
   const message = `your verification link \n https://reviewsix.vercel.app/api/v1/company/listing/verify/${code}/${req.body.userId}`;
 

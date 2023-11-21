@@ -78,15 +78,16 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
     req.body.static_code = await bcrypt.hash(req.body.static_code, 10);
   }
 
-  const notTaken = await prisma.businessPrimaryDetails.findFirst({
+  const Taken = await prisma.businessPrimaryDetails.findFirst({
     where: {
-      website: req.body.website,
-      taken: false,
+      website: {
+        contains: req.body.website,
+      },
     },
   });
 
-  if (notTaken) {
-    res.json({
+  if (Taken && Taken.taken) {
+    res.status(404).json({
       message: "This website is already registered with us.",
       status: "fail",
     });
@@ -94,7 +95,7 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
 
   let newUser;
 
-  if (!notTaken) {
+  if (Taken && !Taken.taken) {
     newUser = await prisma.businessUsers.create({
       data: {
         verification: varificationToken,
@@ -103,12 +104,10 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
     });
   }
 
-  console.log(notTaken);
-
-  if (notTaken && notTaken.website) {
-    await prisma.businessPrimaryDetails.create({
+  if (Taken && Taken.website) {
+    await prisma.businessPrimaryDetails.update({
+      where: { id: Taken.id },
       data: {
-        website: req.body.website,
         taken: true,
         userid: newUser.id,
       },

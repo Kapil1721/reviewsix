@@ -65,60 +65,38 @@ model Blog {
   date            DateTime @default(now())
 }
 
-model CompanyListing {
-  id           String         @id @default(uuid())
-  userId       String?
-  companyName  String?
-  categoryId   String?
-  logo         String?
-  websiteLink  String         @unique
-  about        String?
-  city         String?
-  pincode      String?
-  physical     Boolean        @default(false)
-  email        String?
-  phone        String?
-  address      String?
-  date         DateTime       @default(now())
-  verifyCode   String?
-  status       Boolean        @default(false)
-  hasadmin     Boolean?
-  Review       Review[]
-  ReviewReport ReviewReport[]
-
-  @@map("company_listings")
-}
-
 model Review {
-  id           String          @id @default(uuid())
+  id           String                  @id @default(uuid())
   name         String
   email        String
   title        String
   review       String
   rating       Int
-  date         DateTime        @default(now())
-  createdAt    DateTime        @default(now())
+  date         DateTime                @default(now())
+  createdAt    DateTime                @default(now())
   active       Boolean?
   reply        String?
-  user         User?           @relation(fields: [userId], references: [id])
+  user         User?                   @relation(fields: [userId], references: [id])
   userId       String
-  listing      CompanyListing? @relation(fields: [listingId], references: [id])
+  listing      businessPrimaryDetails? @relation(fields: [listingId], references: [id])
   listingId    String
   ReviewReport ReviewReport[]
+  matrixid     businessUsers?          @relation(fields: [matrix], references: [id])
+  matrix       String
 
   @@map("reviews")
 }
 
 model ReviewReport {
-  id        String         @id @default(uuid())
+  id        String                 @id @default(uuid())
   report    String
   userId    String
-  user      User?          @relation(fields: [userId], references: [id])
+  user      User?                  @relation(fields: [userId], references: [id])
   listingId String
-  listing   CompanyListing @relation(fields: [listingId], references: [id])
+  listing   businessPrimaryDetails @relation(fields: [listingId], references: [id])
   reviewId  String
-  review    Review         @relation(fields: [reviewId], references: [id])
-  date      DateTime       @default(now())
+  review    Review                 @relation(fields: [reviewId], references: [id])
+  date      DateTime               @default(now())
 
   @@map("review_report")
 }
@@ -153,6 +131,7 @@ model businessUsers {
   static_code  String?                  @db.VarChar(255)
   details      businessPrimaryDetails[]
   media        businessMedia[]
+  Review       Review[]
 
   @@map("business_users")
 }
@@ -170,6 +149,8 @@ model businessPrimaryDetails {
   taken         Boolean        @default(false)
   website       String         @unique
   businessUsers businessUsers? @relation(fields: [userid], references: [id])
+  Review        Review[]
+  ReviewReport  ReviewReport[]
 
   @@map("business_primary_details")
 }

@@ -1,11 +1,10 @@
 const catchAsync = require("../utils/catchAsync");
-const User = require("../models/userModel");
-const companyModal = require("../models/companyListingModal");
-const blog = require("../models/blogModal");
-const reviewModal = require("../models/reviewModal");
-const blogCommentModal = require("../models/blogCommentModal");
+const fs = require("fs");
+const sendEmail = require("../utils/email");
+const AppError = require("../utils/appError");
 
 const { PrismaClient } = require("@prisma/client");
+const { error } = require("console");
 const prisma = new PrismaClient();
 
 exports.collectionSizeData = catchAsync(async (req, res, next) => {
@@ -75,15 +74,56 @@ exports.getReviewData = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteReviewData = catchAsync(async (req, res, next) => {
+  const review = await prisma.review.findFirst({
+    where: {
+      id: req.params.id,
+    },
+  });
+
+  const user = await prisma.user.findFirst({
+    where: {
+      id: review.userId,
+    },
+  });
+
+  const company = await prisma.businessUsers.findFirst({
+    where: {
+      id: review.matrix,
+    },
+  });
+
   await prisma.review.delete({
     where: {
       id: req.params.id,
     },
   });
 
-  res.status(204).json({
-    message: "review deleted successfully",
-  });
+  const message = ``;
+
+  let x = fs.readFileSync(__dirname + "/reviewRemove.html", "utf8");
+
+  let y = x
+    .replace("{{name}}", review.name)
+    .replace("{{company}}", company.companyname);
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: `${review.name}, your review has been removed`,
+      message,
+      html: y,
+    });
+
+    res.status(204).json({
+      message: "review deleted successfully",
+    });
+  } catch (err) {
+    console.log(error);
+    return next(
+      new AppError("There was an error sending the email. Try again later!"),
+      500
+    );
+  }
 });
 
 //  - ----- user
@@ -203,9 +243,81 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
     data: { active: req.body.status },
   });
 
-  res.status(200).json({
-    message: "status updated",
+  const review = await prisma.review.findFirst({
+    where: {
+      id: req.params.id,
+    },
   });
+
+  const user = await prisma.user.findFirst({
+    where: {
+      id: review.userId,
+    },
+  });
+
+  const company = await prisma.businessUsers.findFirst({
+    where: {
+      id: review.matrix,
+    },
+  });
+
+  console.log(user, company, review);
+
+  if (req.body.status) {
+    const message = ``;
+
+    let x = fs.readFileSync(__dirname + "/reviewLive.html", "utf8");
+
+    let y = x
+      .replace("{{name}}", review.name)
+      .replace("{{company}}", company.companyname);
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: `${review.name}, your review has been removed`,
+        message,
+        html: y,
+      });
+
+      res.status(200).json({
+        message: "status updated",
+      });
+    } catch (err) {
+      console.log(error);
+      return next(
+        new AppError("There was an error sending the email. Try again later!"),
+        500
+      );
+    }
+  } else {
+    const message = ``;
+
+    let x = fs.readFileSync(__dirname + "/reviewRemove.html", "utf8");
+
+    let y = x
+      .replace("{{name}}", review.name)
+      .replace("{{company}}", company.companyname);
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: `${review.name}, your review has been removed`,
+        message,
+        html: y,
+      });
+
+      res.status(200).json({
+        message: "status updated",
+      });
+    } catch (err) {
+      console.log(error);
+      return next(
+        new AppError("There was an error sending the email. Try again later!"),
+        500
+      );
+    }
+  }
 });
 
 exports.updateListingStatus = catchAsync(async (req, res, next) => {
