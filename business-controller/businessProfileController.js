@@ -100,11 +100,21 @@ exports.updateBusinessProfile = catchAsync(async (req, res, next) => {
       about: req.body.about,
       icon: req.body.icon,
       banner: req.body.banner,
+      category: req.body.category,
     },
   });
 
   res.status(200).json({
     status: "success",
     message: "password updated successfully",
+  });
+});
+
+exports.getAllListingCategory = catchAsync(async (req, res, next) => {
+  const data = await prisma.category.findMany({});
+
+  res.status(200).json({
+    status: "success",
+    data,
   });
 });

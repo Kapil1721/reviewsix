@@ -10,6 +10,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const fs = require("fs");
+const { URL } = require("url");
 
 function ensureHttps(url) {
   if (!url.startsWith("https://")) {
@@ -122,7 +123,6 @@ exports.reviewPostHandler = catchAsync(async (req, res, next) => {
 });
 
 exports.getReviewHandler = catchAsync(async (req, res, next) => {
-  console.log(req.query);
   const reviews = await prisma.review.findMany({
     where: {
       matrix: req.query.id,
@@ -277,13 +277,16 @@ exports.listingByCateController = catchAsync(async (req, res, next) => {
   SELECT
     c.*,
     CAST(AVG(r.rating) AS DECIMAL(10, 2)) AS averageRating,
-    CAST(COUNT(r.id) AS DECIMAL(10, 0)) AS totalReviews
+    CAST(COUNT(r.id) AS DECIMAL(10, 0)) AS totalReviews,
+    business_users.companyname
   FROM
-    company_listings c
+    business_primary_details c
   LEFT JOIN
     reviews r ON c.id = r.listingId
+  LEFT JOIN
+  business_users ON c.userid = business_users.id
   WHERE
-    c.categoryId = ${req.params.id}
+    c.category LIKE  CONCAT('%', ${req.params.id}, '%')
   GROUP BY
     c.id
   LIMIT
@@ -296,9 +299,9 @@ exports.listingByCateController = catchAsync(async (req, res, next) => {
   SELECT
     COUNT(id) AS size
   FROM
-  company_listings
+  business_primary_details
   WHERE
-    categoryId = ${req.params.id};
+    category = ${req.params.id};
 `;
 
   function toJson(data) {
@@ -314,49 +317,49 @@ exports.listingByCateController = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getCategoryReviews = catchAsync(async (req, res, next) => {
-  const data = await companyModal.aggregate([
-    {
-      $match: {
-        $or: [{ categoryId: req.params.id }, { websiteLink: req.params.id }],
-      },
-    },
-    {
-      $addFields: {
-        listid: {
-          $toString: "$id",
-        },
-      },
-    },
-    {
-      $lookup: {
-        from: "reveiws",
-        localField: "listid",
-        foreignField: "listingId",
-        as: "reviews",
-      },
-    },
-    {
-      $project: {
-        id: 0,
-        reviews: 1,
-        websiteLink: 1,
-        logo: 1,
-      },
-    },
-    { $unwind: "$reviews" },
-    {
-      $sample: {
-        size: 8,
-      },
-    },
-  ]);
+// exports.getCategoryReviews = catchAsync(async (req, res, next) => {
+//   const data = await companyModal.aggregate([
+//     {
+//       $match: {
+//         $or: [{ categoryId: req.params.id }, { websiteLink: req.params.id }],
+//       },
+//     },
+//     {
+//       $addFields: {
+//         listid: {
+//           $toString: "$id",
+//         },
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "reveiws",
+//         localField: "listid",
+//         foreignField: "listingId",
+//         as: "reviews",
+//       },
+//     },
+//     {
+//       $project: {
+//         id: 0,
+//         reviews: 1,
+//         websiteLink: 1,
+//         logo: 1,
+//       },
+//     },
+//     { $unwind: "$reviews" },
+//     {
+//       $sample: {
+//         size: 8,
+//       },
+//     },
+//   ]);
 
-  res.status(200).json({
-    message: "success",
-    data,
-  });
-});
+//   res.status(200).json({
+//     message: "success",
+//     data,
+//   });
+// });
 
 exports.getReviewByCategory = catchAsync(async (req, res, err) => {
   let data = await prisma.companyListing.findMany({
@@ -449,16 +452,26 @@ exports.getTopCategory = catchAsync(async (req, res, err) => {
 
 exports.ListingSearch = catchAsync(async (req, res, next) => {
   const searchQuery = req.params.id.toLowerCase();
-  const allDocuments = await prisma.companyListing.findMany();
+  const allDocuments = await prisma.businessPrimaryDetails.findMany();
   const results = [];
+
   const queryTokens = searchQuery.split(" ");
+
   for (const doc of allDocuments) {
-    const titleTokens = doc.websiteLink.split(".")[0].toLowerCase().split(" ");
-    const titleScore = calculateSimilarityScore(queryTokens, titleTokens);
+    const url = new URL(ensureHttps(doc.website));
+
+    console.log(url);
+
+    const domain = url.hostname.toLowerCase();
+
+    const domainTokens = domain.split(".");
+    const titleScore = calculateSimilarityScore(queryTokens, domainTokens);
+
     if (titleScore > 0.5) {
       results.push(doc);
     }
   }
+
   const top5Results = results.slice(0, 5);
 
   res.status(200).json({

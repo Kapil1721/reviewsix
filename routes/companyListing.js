@@ -37,8 +37,6 @@ router.route("/listing/search/:id").get(listingByCateController);
 
 router.route("/listing/type-x/:id").get(ListingSearch);
 
-router.route("/listing/ca/:id").get(getCategoryReviews);
-
 router.route("/listing/find/:id").get(validUser, findRegCompany);
 
 router.route("/listing/upd-listing").post(validUser, updateListing);

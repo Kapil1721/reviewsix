@@ -146,6 +146,7 @@ model businessPrimaryDetails {
   about         String?        @db.VarChar(255)
   advertisement String?
   sociallinks   Json?
+  category      String?
   taken         Boolean        @default(false)
   website       String         @unique
   businessUsers businessUsers? @relation(fields: [userid], references: [id])

@@ -12,7 +12,15 @@ const {
   upadateProfile,
   upadatePassword,
   updateBusinessProfile,
+  getAllListingCategory,
 } = require("../../business-controller/businessProfileController");
+
+const {
+  businessReviewStats,
+  businessReviewStatsCalc,
+  getAllReviewsForBusinessUser,
+  businessReviewReply,
+} = require("../../business-controller/businessReviewController");
 
 const router = express.Router();
 
@@ -29,6 +37,18 @@ router
   .put(validBusinessUser, upadateProfile)
   .patch(validBusinessUser, updateBusinessProfile);
 
+router
+  .route("/review/stats")
+  .put(validBusinessUser, businessReviewStats)
+  .get(validBusinessUser, businessReviewStatsCalc);
+
+router
+  .route("/review")
+  .get(validBusinessUser, getAllReviewsForBusinessUser)
+  .post(validBusinessUser, businessReviewReply);
+
 router.route("/user/updatePassword").put(validBusinessUser, upadatePassword);
+
+router.route("/category").get(validBusinessUser, getAllListingCategory);
 
 module.exports = router;
