@@ -11,3 +11,13 @@ exports.reportReview = catchAsync(async (req, res, next) => {
     message: "success",
   });
 });
+
+exports.contactAdmin = catchAsync(async (req, res, next) => {
+  await prisma.contactBusinessAdmin.create({
+    data: req.body,
+  });
+
+  res.status(201).json({
+    message: "success",
+  });
+});

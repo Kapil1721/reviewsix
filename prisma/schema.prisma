@@ -165,3 +165,14 @@ model businessMedia {
 
   @@map("business_media")
 }
+
+model contactBusinessAdmin {
+  id        String   @id @default(uuid())
+  userId    String
+  listingId String
+  email     String
+  question  String
+  createdAt DateTime @default(now())
+
+  @@map("contact_business_admin")
+}

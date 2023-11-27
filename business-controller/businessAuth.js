@@ -60,6 +60,8 @@ function checkDomainExistence(domain) {
 }
 
 exports.businessUserSignup = catchAsync(async (req, res, next) => {
+  console.log(req.body);
+
   if (req.body.website) {
     const exists = await checkDomainExistence(
       req.body.website.replace(/^(https?|ftp):\/\//, "")
@@ -95,7 +97,7 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
 
   let newUser;
 
-  if (Taken && !Taken.taken) {
+  if (!Taken) {
     newUser = await prisma.businessUsers.create({
       data: {
         verification: varificationToken,
