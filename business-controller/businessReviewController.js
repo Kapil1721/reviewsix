@@ -169,7 +169,7 @@ exports.businessReviewReply = catchAsync(async (req, res, err) => {
 exports.businessContact = catchAsync(async (req, res, err) => {
   const data = await prisma.contactBusinessAdmin.findMany({
     where: {
-      id: req.body.id,
+      listingId: req.body.userId,
     },
   });
 
