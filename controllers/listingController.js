@@ -13,7 +13,7 @@ const fs = require("fs");
 const { URL } = require("url");
 
 function ensureHttps(url) {
-  if (!url.startsWith("https://")) {
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
     return "https://" + url;
   }
   return url;

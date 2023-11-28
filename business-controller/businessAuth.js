@@ -13,6 +13,13 @@ const prisma = new PrismaClient();
 const fs = require("fs");
 const path = require("path");
 
+function ensureHttps(url) {
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    return "https://" + url;
+  }
+  return url;
+}
+
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -59,7 +66,16 @@ function checkDomainExistence(domain) {
   });
 }
 
+function removeHttpsAndWww(url) {
+  let cleanedUrl = url?.replace("www.", "");
+
+  return cleanedUrl;
+}
+
 exports.businessUserSignup = catchAsync(async (req, res, next) => {
+  req.body.website = ensureHttps(req.body.website);
+  req.body.website = removeHttpsAndWww(req.body.website);
+
   if (req.body.website) {
     const exists = await checkDomainExistence(
       req.body.website.replace(/^(https?|ftp):\/\//, "")
@@ -95,8 +111,6 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
   }
 
   let newUser;
-
-  console.log(Taken);
 
   if (!Taken || Taken?.taken === false) {
     newUser = await prisma.businessUsers.create({
