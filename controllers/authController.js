@@ -59,14 +59,13 @@ exports.userSignup = catchAsync(async (req, res, next) => {
   try {
     await sendEmail({
       email: req.body.email,
-      subject: "Your email verification code (valid for 5 days)",
+      subject: "Thank you for registering with us! Your email verification",
       message,
       html: y,
     });
 
     createSendToken(newUser, 201, res);
   } catch (err) {
-
     return next(
       new AppError("There was an error sending the email. Try again later!"),
       500

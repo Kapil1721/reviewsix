@@ -80,6 +80,14 @@ exports.reviewPostHandler = catchAsync(async (req, res, next) => {
     where: { id: req.body.matrix },
   });
 
+  delete req.body.matrix;
+
+  req.body.businessUserId = "";
+
+  if (req.body.matrix) {
+    req.body.businessUserId = req.body.matrix;
+  }
+
   const review = await prisma.review.create({
     data: req.body,
   });
@@ -97,7 +105,7 @@ exports.reviewPostHandler = catchAsync(async (req, res, next) => {
     try {
       await sendEmail({
         email: user.email,
-        subject: "Your email verification code (valid for 5 days)",
+        subject: "Your listing just got a new review!",
         message,
         html: y,
       });
@@ -123,9 +131,11 @@ exports.reviewPostHandler = catchAsync(async (req, res, next) => {
 });
 
 exports.getReviewHandler = catchAsync(async (req, res, next) => {
+  console.log(req.query.id);
+
   const reviews = await prisma.review.findMany({
     where: {
-      matrix: req.query.id,
+      listingId: req.query.id,
       active: true,
     },
     include: {

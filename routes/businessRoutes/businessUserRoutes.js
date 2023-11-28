@@ -20,6 +20,7 @@ const {
   businessReviewStatsCalc,
   getAllReviewsForBusinessUser,
   businessReviewReply,
+  businessContact,
 } = require("../../business-controller/businessReviewController");
 
 const router = express.Router();
@@ -48,7 +49,7 @@ router
   .post(validBusinessUser, businessReviewReply);
 
 router.route("/user/updatePassword").put(validBusinessUser, upadatePassword);
-
+router.route("/user/contact").get(validBusinessUser, businessContact);
 router.route("/category").get(validBusinessUser, getAllListingCategory);
 
 module.exports = router;

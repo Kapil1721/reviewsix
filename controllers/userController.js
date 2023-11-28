@@ -34,15 +34,10 @@ exports.getUserReviews = catchAsync(async (req, res, next) => {
       ...o,
     },
     include: {
-      matrixid: {
-        select: {
-          companyname: true,
-          website: true,
-        },
-      },
       listing: {
         select: {
           icon: true,
+          website: true,
         },
       },
     },

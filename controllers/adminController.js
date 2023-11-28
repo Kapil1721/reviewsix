@@ -86,9 +86,15 @@ exports.deleteReviewData = catchAsync(async (req, res, next) => {
     },
   });
 
+  const businessDetails = await prisma.businessPrimaryDetails.findFirst({
+    where: {
+      id: review.listingId,
+    },
+  });
+
   const company = await prisma.businessUsers.findFirst({
     where: {
-      id: review.matrix,
+      id: businessDetails.userid,
     },
   });
 
@@ -255,13 +261,17 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
     },
   });
 
-  const company = await prisma.businessUsers.findFirst({
+  const businessDetails = await prisma.businessPrimaryDetails.findFirst({
     where: {
-      id: review.matrix,
+      id: review.listingId,
     },
   });
 
-  console.log(user, company, review);
+  const company = await prisma.businessUsers.findFirst({
+    where: {
+      id: businessDetails.userid,
+    },
+  });
 
   if (req.body.status) {
     const message = ``;
@@ -275,7 +285,7 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
     try {
       await sendEmail({
         email: user.email,
-        subject: `${review.name}, your review has been removed`,
+        subject: `${review.name}, your review is live now`,
         message,
         html: y,
       });

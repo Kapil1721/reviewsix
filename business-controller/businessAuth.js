@@ -60,8 +60,6 @@ function checkDomainExistence(domain) {
 }
 
 exports.businessUserSignup = catchAsync(async (req, res, next) => {
-  console.log(req.body);
-
   if (req.body.website) {
     const exists = await checkDomainExistence(
       req.body.website.replace(/^(https?|ftp):\/\//, "")
@@ -89,15 +87,18 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
   });
 
   if (Taken && Taken.taken) {
-    res.status(404).json({
-      message: "This website is already registered with us.",
+    return res.status(404).json({
+      message:
+        "This website has already been registered. Please use a different website or contact support for assistance.",
       status: "fail",
     });
   }
 
   let newUser;
 
-  if (!Taken) {
+  console.log(Taken);
+
+  if (!Taken || Taken?.taken === false) {
     newUser = await prisma.businessUsers.create({
       data: {
         verification: varificationToken,
@@ -129,6 +130,7 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
     "..",
     "/controllers/accountRegister.html"
   );
+
   const hog = fs.readFileSync(filePath, "utf8");
 
   const message = `https://business.thebusinessrating.com/password/${varificationToken}/${newUser.id}`;

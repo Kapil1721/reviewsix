@@ -5,8 +5,13 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 exports.businessReviewStats = catchAsync(async (req, res, err) => {
-  console.log(req.body);
   const businessId = req.body.userId;
+
+  const sda = await prisma.businessPrimaryDetails.findFirst({
+    where: {
+      userid: businessId,
+    },
+  });
 
   const reviewCounts = await prisma.review.groupBy({
     by: ["active"],
@@ -14,7 +19,7 @@ exports.businessReviewStats = catchAsync(async (req, res, err) => {
       _all: true,
     },
     where: {
-      matrix: businessId,
+      listingId: sda.id,
     },
   });
 
@@ -33,6 +38,12 @@ exports.businessReviewStats = catchAsync(async (req, res, err) => {
 exports.businessReviewStatsCalc = catchAsync(async (req, res, err) => {
   const businessId = req.body.userId;
 
+  const sda = await prisma.businessPrimaryDetails.findFirst({
+    where: {
+      userid: businessId,
+    },
+  });
+
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth() + 1;
   const currentYear = currentDate.getFullYear();
@@ -42,7 +53,7 @@ exports.businessReviewStatsCalc = catchAsync(async (req, res, err) => {
 
   const currentMonthReviews = await prisma.review.count({
     where: {
-      matrix: businessId,
+      listingId: sda.id,
       createdAt: {
         gte: new Date(`${currentYear}-${currentMonth}-01`),
         lt: new Date(`${currentYear}-${currentMonth + 1}-01`),
@@ -52,7 +63,7 @@ exports.businessReviewStatsCalc = catchAsync(async (req, res, err) => {
 
   const previousMonthReviews = await prisma.review.count({
     where: {
-      matrix: businessId,
+      listingId: sda.id,
       createdAt: {
         gte: new Date(`${previousYear}-${previousMonth}-01`),
         lt: new Date(`${previousYear}-${previousMonth + 1}-01`),
@@ -62,7 +73,7 @@ exports.businessReviewStatsCalc = catchAsync(async (req, res, err) => {
 
   const total = await prisma.review.count({
     where: {
-      matrix: businessId,
+      listingId: sda.id,
     },
   });
 
@@ -81,8 +92,14 @@ exports.businessReviewStatsCalc = catchAsync(async (req, res, err) => {
 });
 
 exports.getAllReviewsForBusinessUser = catchAsync(async (req, res, err) => {
+  const sda = await prisma.businessPrimaryDetails.findFirst({
+    where: {
+      userid: req.body.userId,
+    },
+  });
+
   let filter = { createdAt: "desc" };
-  let modifier = { matrix: req.body.userId };
+  let modifier = { listingId: sda.id };
 
   if (req.query.sort) {
     delete filter.createdAt;
@@ -146,5 +163,18 @@ exports.businessReviewReply = catchAsync(async (req, res, err) => {
 
   res.status(200).json({
     message: "success",
+  });
+});
+
+exports.businessContact = catchAsync(async (req, res, err) => {
+  const data = await prisma.contactBusinessAdmin.findMany({
+    where: {
+      id: req.body.id,
+    },
+  });
+
+  res.status(200).json({
+    message: "success",
+    data,
   });
 });
