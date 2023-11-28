@@ -251,9 +251,11 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
 
   const review = await prisma.review.findFirst({
     where: {
-      id: req.params.id,
+      id: req.body.id,
     },
   });
+
+  console.log(review);
 
   const user = await prisma.user.findFirst({
     where: {
@@ -267,11 +269,15 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
     },
   });
 
-  const company = await prisma.businessUsers.findFirst({
-    where: {
-      id: businessDetails.userid,
-    },
-  });
+  let company;
+
+  if (businessDetails.userid) {
+    company = await prisma.businessUsers.findFirst({
+      where: {
+        id: businessDetails.userid,
+      },
+    });
+  }
 
   if (req.body.status) {
     const message = ``;
@@ -280,7 +286,10 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
 
     let y = x
       .replace("{{name}}", review.name)
-      .replace("{{company}}", company.companyname);
+      .replace(
+        "{{company}}",
+        company ? company?.companyname : businessDetails.website
+      );
 
     try {
       await sendEmail({
@@ -306,8 +315,8 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
     let x = fs.readFileSync(__dirname + "/reviewRemove.html", "utf8");
 
     let y = x
-      .replace("{{name}}", review.name)
-      .replace("{{company}}", company.companyname);
+      .replaceAll("{{name}}", review.name)
+      .replaceAll("{{company}}", company.companyname);
 
     try {
       await sendEmail({
