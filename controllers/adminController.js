@@ -264,19 +264,20 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
     },
   });
 
-  console.log(review);
-
   const user = await prisma.user.findFirst({
     where: {
       id: review.userId,
     },
   });
 
-  const businessDetails = await prisma.businessPrimaryDetails.findFirst({
-    where: {
-      id: review.listingId,
-    },
-  });
+  let businessDetails;
+  if (review.listingId) {
+    businessDetails = await prisma.businessPrimaryDetails.findFirst({
+      where: {
+        id: review.listingId,
+      },
+    });
+  }
 
   let company;
 

@@ -51,12 +51,18 @@ exports.businessReviewStatsCalc = catchAsync(async (req, res, err) => {
   const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
   const previousYear = currentMonth === 1 ? currentYear - 1 : currentYear;
 
+  console.log(currentYear, currentMonth);
+
   const currentMonthReviews = await prisma.review.count({
     where: {
       listingId: sda.id,
       createdAt: {
         gte: new Date(`${currentYear}-${currentMonth}-01`),
-        lt: new Date(`${currentYear}-${currentMonth + 1}-01`),
+        lt: new Date(
+          `${currentYear}-${
+            currentMonth !== 12 ? currentMonth + 1 : currentMonth
+          }-01`
+        ),
       },
     },
   });
