@@ -21,6 +21,7 @@ const {
   getAllReviewsForBusinessUser,
   businessReviewReply,
   businessContact,
+  getReviewOnReport,
 } = require("../../business-controller/businessReviewController");
 
 const router = express.Router();
@@ -49,6 +50,7 @@ router
   .post(validBusinessUser, businessReviewReply);
 
 router.route("/user/updatePassword").put(validBusinessUser, upadatePassword);
+router.route("/report").get(validBusinessUser, getReviewOnReport);
 router.route("/user/contact").get(validBusinessUser, businessContact);
 router.route("/category").get(validBusinessUser, getAllListingCategory);
 

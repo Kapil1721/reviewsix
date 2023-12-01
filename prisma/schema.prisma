@@ -93,9 +93,10 @@ model ReviewReport {
   user      User?                  @relation(fields: [userId], references: [id])
   listingId String
   listing   businessPrimaryDetails @relation(fields: [listingId], references: [id])
-  reviewId  String
-  review    Review                 @relation(fields: [reviewId], references: [id])
-  date      DateTime               @default(now())
+
+  reviewId String
+  review   Review   @relation(fields: [reviewId], references: [id])
+  date     DateTime @default(now())
 
   @@map("review_report")
 }
@@ -148,6 +149,8 @@ model businessPrimaryDetails {
   taken         Boolean        @default(false)
   website       String         @unique
   businessUsers businessUsers? @relation(fields: [userid], references: [id])
+  createdAt     DateTime?      @default(now())
+  adminStats    Boolean?
   Review        Review[]
   ReviewReport  ReviewReport[]
 

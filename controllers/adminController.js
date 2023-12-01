@@ -24,14 +24,14 @@ ORDER BY total ASC;`;
 
   const listings = await prisma.$queryRaw`
       SELECT CASE WHEN
-      status
+      taken
           = 1 THEN 'claimed' ELSE 'unclaimed'
       END AS id,
       CAST(COUNT(*) AS  DECIMAL(10,2)) AS total
       FROM
-          company_listings
+      business_primary_details
       GROUP BY CASE WHEN
-          status = 1 THEN 'claimed' ELSE 'unclaimed'
+      taken = 1 THEN 'claimed' ELSE 'unclaimed'
       END
       ORDER BY
           total ASC;`;
@@ -50,7 +50,7 @@ ORDER BY total ASC;`;
   });
 });
 
-//  - ----- review
+//  ------ review
 
 exports.getReviewData = catchAsync(async (req, res, next) => {
   const reviews = await prisma.review.findMany({
@@ -148,11 +148,11 @@ exports.getUserData = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteUserData = catchAsync(async (req, res, next) => {
-  await prisma.user.delete({
-    where: {
-      id: req.params.id,
-    },
-  });
+  await prisma.$queryRaw`
+  SELECT * 
+  FROM users, reviews, review_report 
+  WHERE ${req.params.id} IN (users.id, reviews.userId, review_report.reviewId);
+`;
 
   res.status(204).json({
     message: "user deleted successfully",
@@ -162,21 +162,20 @@ exports.deleteUserData = catchAsync(async (req, res, next) => {
 //  - ----- listing
 
 exports.getListingData = catchAsync(async (req, res, next) => {
-  const reviews = await prisma.$queryRaw`  SELECT 
-  *,
-  users.name,
-  users.email,
-  users.phone,
-  users.address
-FROM 
-  company_listings 
-LEFT JOIN
-  users
-ON
-  company_listings.userId = users.id
-ORDER BY
-  company_listings.date DESC;
-`;
+  const reviews = await prisma.$queryRaw` SELECT 
+      business_primary_details.*,
+      business_users.fname,
+      business_users.email,
+      business_users.phone,
+      business_users.address,
+      business_users.companyname
+    FROM 
+      business_primary_details 
+    LEFT JOIN
+      business_users
+    ON
+    business_primary_details.userid = business_users.id
+    `;
 
   res.status(200).json({
     message: "success",
@@ -186,7 +185,7 @@ ORDER BY
 });
 
 exports.deleteListingData = catchAsync(async (req, res, next) => {
-  await prisma.companyListing.delete({ where: { id: req.params.id } });
+  await prisma.businessPrimaryDetails.delete({ where: { id: req.params.id } });
 
   res.status(204).json({
     message: "listing deleted successfully",
@@ -205,6 +204,12 @@ exports.getBlogData = catchAsync(async (req, res, next) => {
 });
 
 exports.postBlogData = catchAsync(async (req, res, next) => {
+  Object.keys(req.body).forEach((e) => {
+    if (e.includes("question") || e.includes("answer")) {
+      delete req.body[e];
+    }
+  });
+
   await prisma.blog.create({ data: req.body });
 
   res.status(201).json({
@@ -236,7 +241,11 @@ exports.updateBlogData = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteBlogData = catchAsync(async (req, res, next) => {
-  await prisma.blog.deleteMany({ id: req.params.id });
+  await prisma.blog.deleteMany({
+    where: {
+      id: req.params.id,
+    },
+  });
 
   res.status(204).json({
     message: "blog deleted successfully",
@@ -316,7 +325,10 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
 
     let y = x
       .replaceAll("{{name}}", review.name)
-      .replaceAll("{{company}}", company.companyname);
+      .replaceAll(
+        "{{company}}",
+        company ? company?.companyname : businessDetails.website
+      );
 
     try {
       await sendEmail({
@@ -330,7 +342,6 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
         message: "status updated",
       });
     } catch (err) {
-      console.log(error);
       return next(
         new AppError("There was an error sending the email. Try again later!"),
         500
@@ -340,9 +351,9 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
 });
 
 exports.updateListingStatus = catchAsync(async (req, res, next) => {
-  await prisma.companyListing.update({
+  await prisma.businessPrimaryDetails.update({
     where: { id: req.body.id },
-    data: { hasadmin: req.body.hasadmin },
+    data: { adminStats: req.body.hasadmin },
   });
 
   res.status(200).json({

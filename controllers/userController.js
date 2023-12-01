@@ -365,6 +365,7 @@ exports.updateUserReview = catchAsync(async (req, res, next) => {
       title: req.body.title,
       review: req.body.review,
       rating: req.body.rating,
+      active: null,
     },
   });
 

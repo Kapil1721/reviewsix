@@ -372,9 +372,11 @@ exports.listingByCateController = catchAsync(async (req, res, next) => {
 // });
 
 exports.getReviewByCategory = catchAsync(async (req, res, err) => {
-  let data = await prisma.companyListing.findMany({
+  let data = await prisma.businessPrimaryDetails.findMany({
     where: {
-      categoryId: req.params.id,
+      category: {
+        contains: req.params.id,
+      },
     },
     include: {
       Review: true,
@@ -383,7 +385,7 @@ exports.getReviewByCategory = catchAsync(async (req, res, err) => {
 
   data = data
     .flatMap((e) =>
-      e.Review.map((l) => ({ ...l, websiteLink: e.websiteLink, logo: e.logo }))
+      e.Review.map((l) => ({ ...l, websiteLink: e.website, logo: e.icon }))
     )
 
     .filter((e) => e.active === true);
@@ -452,6 +454,7 @@ exports.getTopCategory = catchAsync(async (req, res, err) => {
     where: {
       onTop: true,
     },
+    take: 5,
   });
 
   res.status(200).json({

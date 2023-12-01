@@ -178,3 +178,33 @@ exports.businessContact = catchAsync(async (req, res, err) => {
     data,
   });
 });
+
+exports.getReviewOnReport = catchAsync(async (req, res, err) => {
+  const business = await prisma.businessPrimaryDetails.findFirst({
+    where: {
+      userid: req.body.userId,
+    },
+  });
+
+  const data = await prisma.$queryRaw`
+    SELECT
+      r.*,
+      c.name,
+      c.email,
+      z.review,
+      z.email AS review_email,
+      z.name AS review_user
+  FROM
+      review_report r
+  LEFT JOIN users c ON
+      c.id = r.userId
+  LEFT JOIN reviews z ON
+      r.reviewId = z.id
+  WHERE
+      r.listingId = ${business.id}`;
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
