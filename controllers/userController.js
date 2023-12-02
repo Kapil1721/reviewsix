@@ -79,6 +79,8 @@ exports.GetUserData = catchAsync(async (req, res, next) => {
       email: true,
       verified: true,
       image: true,
+      address: true,
+      phone: true,
     },
   });
 

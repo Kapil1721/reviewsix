@@ -280,7 +280,6 @@ exports.updateStatus = catchAsync(async (req, res, next) => {
   }
 
   let company;
-
   if (businessDetails.userid) {
     company = await prisma.businessUsers.findFirst({
       where: {

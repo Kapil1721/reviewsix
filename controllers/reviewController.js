@@ -16,13 +16,21 @@ exports.contactAdmin = catchAsync(async (req, res, next) => {
   req.body.question = req.body.message;
   delete req.body.message;
 
-  console.log(req.body);
-
   await prisma.contactBusinessAdmin.create({
     data: req.body,
   });
 
   res.status(201).json({
     message: "success",
+  });
+});
+
+exports.topReviews = catchAsync(async (req, res, next) => {
+  const data =
+    await prisma.$queryRaw`SELECT name,image FROM users WHERE isTOP = 1 `;
+
+  res.status(200).json({
+    message: "success",
+    data,
   });
 });
