@@ -63,7 +63,7 @@ exports.getReviewData = catchAsync(async (req, res, next) => {
       },
     },
     orderBy: {
-      date: "asc",
+      createdAt: "desc",
     },
   });
 
@@ -175,7 +175,7 @@ exports.getListingData = catchAsync(async (req, res, next) => {
       business_users
     ON
     business_primary_details.userid = business_users.id
-    `;
+    ORDER BY createdAt DESC`;
 
   res.status(200).json({
     message: "success",
