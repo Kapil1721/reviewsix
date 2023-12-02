@@ -39,7 +39,8 @@ app.use(
     origin: [
       "https://business.thebusinessrating.com",
       "https://thebusinessrating.com",
-      "http://localhost",
+      "https://thepreviewpro",
+      "https://thepreview.pro",
     ],
     credentials: true,
   })
