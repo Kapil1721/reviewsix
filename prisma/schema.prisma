@@ -177,3 +177,13 @@ model contactBusinessAdmin {
 
   @@map("contact_business_admin")
 }
+
+model businessAdvertisement {
+  id        String   @id @default(uuid())
+  userId    String?
+  listingid String?
+  ads       Json?
+  createdAt DateTime @default(now())
+
+  @@map("business_advertisement")
+}

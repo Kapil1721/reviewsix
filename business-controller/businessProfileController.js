@@ -118,3 +118,24 @@ exports.getAllListingCategory = catchAsync(async (req, res, next) => {
     data,
   });
 });
+
+exports.updateAdController = catchAsync(async (req, res, next) => {
+  await prisma.businessAdvertisement.updateMany({
+    where: { userId: req.body.userId },
+    data: { ads: req.body.ads },
+  });
+
+  res.status(200).json({
+    status: "success updated",
+  });
+});
+
+exports.getAdController = catchAsync(async (req, res, next) => {
+  let data =
+    await prisma.$queryRaw`SELECT * FROM business_advertisement WHERE userId = ${req.body.userId}`;
+
+  res.status(200).json({
+    status: "success",
+    data,
+  });
+});

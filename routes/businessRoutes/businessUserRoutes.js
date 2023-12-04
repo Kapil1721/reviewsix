@@ -13,6 +13,8 @@ const {
   upadatePassword,
   updateBusinessProfile,
   getAllListingCategory,
+  getAdController,
+  updateAdController,
 } = require("../../business-controller/businessProfileController");
 
 const {
@@ -53,5 +55,10 @@ router.route("/user/updatePassword").put(validBusinessUser, upadatePassword);
 router.route("/report").get(validBusinessUser, getReviewOnReport);
 router.route("/user/contact").get(validBusinessUser, businessContact);
 router.route("/category").get(validBusinessUser, getAllListingCategory);
+
+router
+  .route("/advertisement")
+  .get(validBusinessUser, getAdController)
+  .put(validBusinessUser, updateAdController);
 
 module.exports = router;
