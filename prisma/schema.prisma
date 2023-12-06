@@ -163,6 +163,8 @@ model businessMedia {
   media_url       String         @db.VarChar(255)
   businessUsers   businessUsers? @relation(fields: [businessUsersId], references: [id])
   businessUsersId String?
+  listingId       String
+  createdAt       DateTime       @default(now())
 
   @@map("business_media")
 }
@@ -186,4 +188,27 @@ model businessAdvertisement {
   createdAt DateTime @default(now())
 
   @@map("business_advertisement")
+}
+
+model premiumUser {
+  id               String        @id @default(uuid())
+  userId           String?
+  listingid        String?
+  planActive       Boolean       @default(true)
+  subscription     subscription? @relation(fields: [subscriptionId], references: [id])
+  subscriptionId   String?
+  currentPlanStart DateTime?
+  currentPlanEnd   DateTime?
+  createdAt        DateTime      @default(now())
+
+  @@map("premium_user")
+}
+
+model subscription {
+  id          String        @id @default(uuid())
+  userId      String?
+  listingid   String?
+  paymentId   String?
+  createdAt   DateTime      @default(now())
+  premiumUser premiumUser[]
 }

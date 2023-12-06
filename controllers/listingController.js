@@ -96,8 +96,14 @@ exports.reviewPostHandler = catchAsync(async (req, res, next) => {
     const message = ``;
 
     let x = fs.readFileSync(__dirname + "/newReview.html", "utf8");
+    let l = fs.readFileSync(__dirname + "/reviewModration.html", "utf8");
 
     let y = x
+      .replace("{{name}}", user.fname)
+      .replace("{{link}}", ``)
+      .replace("{{company}}", user.companyname);
+
+    let z = l
       .replace("{{name}}", user.fname)
       .replace("{{link}}", ``)
       .replace("{{company}}", user.companyname);
@@ -108,6 +114,13 @@ exports.reviewPostHandler = catchAsync(async (req, res, next) => {
         subject: "Your listing just got a new review!",
         message,
         html: y,
+      });
+
+      await sendEmail({
+        email: req.body.email,
+        subject: "Your review is under moderation",
+        message,
+        html: z,
       });
 
       res.status(201).json({
@@ -464,8 +477,6 @@ exports.getTopCategory = catchAsync(async (req, res, err) => {
 });
 
 exports.getListingAdvertisment = catchAsync(async (req, res, err) => {
-  console.log(req.params.id, "---------guchi");
-
   const data = await prisma.businessAdvertisement.findMany({
     where: {
       listingid: req.params.id,

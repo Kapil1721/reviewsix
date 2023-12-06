@@ -15,6 +15,7 @@ const {
   getAllListingCategory,
   getAdController,
   updateAdController,
+  uploadBusinessMedia,
 } = require("../../business-controller/businessProfileController");
 
 const {
@@ -25,6 +26,10 @@ const {
   businessContact,
   getReviewOnReport,
 } = require("../../business-controller/businessReviewController");
+const {
+  newSubscription,
+  subValidator,
+} = require("../../business-controller/businessSubscriptionController");
 
 const router = express.Router();
 
@@ -60,5 +65,14 @@ router
   .route("/advertisement")
   .get(validBusinessUser, getAdController)
   .put(validBusinessUser, updateAdController);
+
+router
+  .route("/media")
+  .post(validBusinessUser, subValidator, uploadBusinessMedia);
+
+router
+  .route("/subscription")
+  .post(validBusinessUser, newSubscription)
+  .get(validBusinessUser, subValidator);
 
 module.exports = router;

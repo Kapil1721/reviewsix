@@ -41,6 +41,9 @@ exports.getUserReviews = catchAsync(async (req, res, next) => {
         },
       },
     },
+    orderBy: {
+      createdAt: "asc",
+    },
     skip: skip,
     take: 5,
   });

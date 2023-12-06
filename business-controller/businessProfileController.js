@@ -139,3 +139,18 @@ exports.getAdController = catchAsync(async (req, res, next) => {
     data,
   });
 });
+
+exports.uploadBusinessMedia = catchAsync(async (req, res, next) => {
+
+
+  req.body.businessUsersId = req.body.userId;
+  delete req.body.userId;
+
+  await prisma.businessMedia.create({
+    data: req.body,
+  });
+
+  res.status(201).json({
+    status: "Media successfully inserted",
+  });
+});

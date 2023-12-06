@@ -51,7 +51,6 @@ exports.businessReviewStatsCalc = catchAsync(async (req, res, err) => {
   const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
   const previousYear = currentMonth === 1 ? currentYear - 1 : currentYear;
 
-  console.log(currentYear, currentMonth);
 
   const currentMonthReviews = await prisma.review.count({
     where: {
