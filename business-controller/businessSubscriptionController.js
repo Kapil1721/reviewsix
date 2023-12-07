@@ -92,3 +92,28 @@ exports.newSubscription = catchAsync(async (req, res, next) => {
     message: "success",
   });
 });
+
+exports.getMedia = catchAsync(async (req, res, next) => {
+  const data = await prisma.businessMedia.findMany({
+    where: {
+      businessUsersId: req.body.userId,
+    },
+  });
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
+
+exports.deleteMedia = catchAsync(async (req, res, next) => {
+  await prisma.businessMedia.deleteMany({
+    where: {
+      id: req.params.id,
+    },
+  });
+
+  res.status(204).json({
+    message: "deleted successully",
+  });
+});

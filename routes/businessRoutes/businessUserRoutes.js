@@ -29,6 +29,8 @@ const {
 const {
   newSubscription,
   subValidator,
+  getMedia,
+  deleteMedia,
 } = require("../../business-controller/businessSubscriptionController");
 
 const router = express.Router();
@@ -67,8 +69,10 @@ router
   .put(validBusinessUser, updateAdController);
 
 router
-  .route("/media")
-  .post(validBusinessUser, subValidator, uploadBusinessMedia);
+  .route("/media/:id?")
+  .post(validBusinessUser, subValidator, uploadBusinessMedia)
+  .get(validBusinessUser, subValidator, getMedia)
+  .delete(validBusinessUser, subValidator, deleteMedia);
 
 router
   .route("/subscription")
