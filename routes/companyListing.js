@@ -16,6 +16,7 @@ const {
   lisingCategory,
   getTopCategory,
   getListingAdvertisment,
+  getListingPremiumStatus,
 } = require("../controllers/listingController");
 const { validUser } = require("../controllers/authController");
 
@@ -49,5 +50,7 @@ router.route("/listing/verify/:vcode/:uid").get(verifiyListingConfirmation);
 router.route("/listing/review/:id").get(getReviewByCategory);
 
 router.route("/listing/advertisment/:id?").get(getListingAdvertisment);
+
+router.route("/listing_m_details").post(getListingPremiumStatus);
 
 module.exports = router;

@@ -340,49 +340,46 @@ exports.listingByCateController = catchAsync(async (req, res, next) => {
   });
 });
 
-// exports.getCategoryReviews = catchAsync(async (req, res, next) => {
-//   const data = await companyModal.aggregate([
-//     {
-//       $match: {
-//         $or: [{ categoryId: req.params.id }, { websiteLink: req.params.id }],
-//       },
-//     },
-//     {
-//       $addFields: {
-//         listid: {
-//           $toString: "$id",
-//         },
-//       },
-//     },
-//     {
-//       $lookup: {
-//         from: "reveiws",
-//         localField: "listid",
-//         foreignField: "listingId",
-//         as: "reviews",
-//       },
-//     },
-//     {
-//       $project: {
-//         id: 0,
-//         reviews: 1,
-//         websiteLink: 1,
-//         logo: 1,
-//       },
-//     },
-//     { $unwind: "$reviews" },
-//     {
-//       $sample: {
-//         size: 8,
-//       },
-//     },
-//   ]);
+exports.getListingPremiumStatus = catchAsync(async (req, res, next) => {
+  const listing = await prisma.businessPrimaryDetails.findFirst({
+    where: {
+      website: {
+        contains: req.body.websiteLink,
+      },
+    },
+  });
 
-//   res.status(200).json({
-//     message: "success",
-//     data,
-//   });
-// });
+  const PremiumDetails = await prisma.premiumUser.findFirst({
+    where: {
+      listingid: listing.id,
+    },
+  });
+
+  if (!PremiumDetails) {
+    res.status(200).json({
+      message: "success",
+      data: {
+        hasp: false,
+      },
+    });
+  }
+
+  if (PremiumDetails && PremiumDetails.currentPlanEnd < Date.now()) {
+    res.status(200).json({
+      message: "success",
+      data: {
+        hasp: false,
+      },
+    });
+  }
+
+  res.status(200).json({
+    message: "success",
+    data: {
+      hasp: true,
+    },
+  });
+});
 
 exports.getReviewByCategory = catchAsync(async (req, res, err) => {
   let data = await prisma.businessPrimaryDetails.findMany({

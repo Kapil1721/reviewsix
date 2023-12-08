@@ -32,6 +32,9 @@ const {
   getMedia,
   deleteMedia,
 } = require("../../business-controller/businessSubscriptionController");
+const {
+  getListingPremiumStatus,
+} = require("../../controllers/listingController");
 
 const router = express.Router();
 
