@@ -56,8 +56,6 @@ app.use("/api/v1/business", businessRoute);
 
 // Handle undefined routes
 app.all("*", (req, res, next) => {
-  console.log(req.method);
-
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 

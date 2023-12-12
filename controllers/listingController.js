@@ -486,6 +486,19 @@ exports.getListingAdvertisment = catchAsync(async (req, res, err) => {
   });
 });
 
+exports.getListingMedia = catchAsync(async (req, res, err) => {
+  const data = await prisma.businessMedia.findMany({
+    where: {
+      listingId: req.params.id,
+    },
+  });
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
+
 exports.ListingSearch = catchAsync(async (req, res, next) => {
   const searchQuery = req.params.id.toLowerCase();
   const allDocuments = await prisma.businessPrimaryDetails.findMany();
