@@ -31,6 +31,7 @@ const {
   subValidator,
   getMedia,
   deleteMedia,
+  getSubscriptionDetails,
 } = require("../../business-controller/businessSubscriptionController");
 const {
   getListingPremiumStatus,
@@ -81,5 +82,9 @@ router
   .route("/subscription")
   .post(validBusinessUser, newSubscription)
   .get(validBusinessUser, subValidator);
+
+router
+  .route("/subscription/details")
+  .get(validBusinessUser, getSubscriptionDetails);
 
 module.exports = router;

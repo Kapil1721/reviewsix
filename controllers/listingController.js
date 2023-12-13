@@ -356,7 +356,7 @@ exports.getListingPremiumStatus = catchAsync(async (req, res, next) => {
   });
 
   if (!PremiumDetails) {
-    res.status(200).json({
+    return res.status(200).json({
       message: "success",
       data: {
         hasp: false,
@@ -365,7 +365,7 @@ exports.getListingPremiumStatus = catchAsync(async (req, res, next) => {
   }
 
   if (PremiumDetails && PremiumDetails.currentPlanEnd < Date.now()) {
-    res.status(200).json({
+    return res.status(200).json({
       message: "success",
       data: {
         hasp: false,
@@ -373,7 +373,7 @@ exports.getListingPremiumStatus = catchAsync(async (req, res, next) => {
     });
   }
 
-  res.status(200).json({
+  return res.status(200).json({
     message: "success",
     data: {
       hasp: true,

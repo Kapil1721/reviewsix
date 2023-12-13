@@ -117,3 +117,16 @@ exports.deleteMedia = catchAsync(async (req, res, next) => {
     message: "deleted successully",
   });
 });
+
+exports.getSubscriptionDetails = catchAsync(async (req, res, next) => {
+  const data = await prisma.premiumUser.findFirst({
+    where: {
+      userId: req.body.userId,
+    },
+  });
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
