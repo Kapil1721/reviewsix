@@ -32,6 +32,7 @@ const {
   getMedia,
   deleteMedia,
   getSubscriptionDetails,
+  getSubscriptionHistory,
 } = require("../../business-controller/businessSubscriptionController");
 const {
   getListingPremiumStatus,
@@ -86,5 +87,9 @@ router
 router
   .route("/subscription/details")
   .get(validBusinessUser, getSubscriptionDetails);
+
+router
+  .route("/subscription/history")
+  .get(validBusinessUser, getSubscriptionHistory);
 
 module.exports = router;

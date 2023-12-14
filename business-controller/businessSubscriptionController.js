@@ -61,7 +61,7 @@ exports.subValidator = catchAsync(async (req, res, next) => {
   }
 });
 
-// ---------------------------------------
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 exports.newSubscription = catchAsync(async (req, res, next) => {
   const data = await prisma.subscription.create({
@@ -124,6 +124,20 @@ exports.getSubscriptionDetails = catchAsync(async (req, res, next) => {
       userId: req.body.userId,
     },
   });
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
+
+exports.getSubscriptionHistory = catchAsync(async (req, res, next) => {
+  const data = await prisma.$queryRaw`SELECT
+    c.*, p.currentPlanStart, p.currentPlanEnd, p.planActive
+    FROM
+      subscription c
+    LEFT JOIN
+     premium_user p ON c.id = p.subscriptionId WHERE c.userId = ${req.body.userId}`;
 
   res.status(200).json({
     message: "success",

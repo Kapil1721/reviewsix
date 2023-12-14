@@ -141,8 +141,6 @@ exports.getAdController = catchAsync(async (req, res, next) => {
 });
 
 exports.uploadBusinessMedia = catchAsync(async (req, res, next) => {
-
-
   req.body.businessUsersId = req.body.userId;
   delete req.body.userId;
 
