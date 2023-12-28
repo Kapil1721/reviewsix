@@ -59,7 +59,7 @@ exports.userSignup = catchAsync(async (req, res, next) => {
   try {
     await sendEmail({
       email: req.body.email,
-      subject: "Thank you for registering with us! Your email verification",
+      subject: "Email Verification: Thank you for registering with us!",
       message,
       html: y,
     });

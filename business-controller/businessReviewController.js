@@ -51,14 +51,13 @@ exports.businessReviewStatsCalc = catchAsync(async (req, res, err) => {
   const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
   const previousYear = currentMonth === 1 ? currentYear - 1 : currentYear;
 
-
   const currentMonthReviews = await prisma.review.count({
     where: {
       listingId: sda.id,
       createdAt: {
         gte: new Date(`${currentYear}-${currentMonth}-01`),
         lt: new Date(
-          `${currentYear}-${
+          `${currentYear !== 12 ? currentYear + 1 : currentYear}-${
             currentMonth !== 12 ? currentMonth + 1 : currentMonth
           }-01`
         ),
@@ -82,6 +81,15 @@ exports.businessReviewStatsCalc = catchAsync(async (req, res, err) => {
     },
   });
 
+  const averageRating = await prisma.review.aggregate({
+    _avg: {
+      rating: true,
+    },
+    where: {
+      listingId: sda.id,
+    },
+  });
+
   const percentageChange =
     previousMonthReviews !== 0
       ? ((currentMonthReviews - previousMonthReviews) / previousMonthReviews) *
@@ -93,6 +101,7 @@ exports.businessReviewStatsCalc = catchAsync(async (req, res, err) => {
     previousMonthReviews,
     percentageChange,
     total,
+    averageRating: averageRating._avg.rating,
   });
 });
 
