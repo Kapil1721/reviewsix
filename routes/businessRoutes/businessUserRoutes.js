@@ -25,6 +25,7 @@ const {
   businessReviewReply,
   businessContact,
   getReviewOnReport,
+  reviewReportHandler,
 } = require("../../business-controller/businessReviewController");
 const {
   newSubscription,
@@ -64,7 +65,11 @@ router
   .post(validBusinessUser, businessReviewReply);
 
 router.route("/user/updatePassword").put(validBusinessUser, upadatePassword);
-router.route("/report").get(validBusinessUser, getReviewOnReport);
+router
+  .route("/report")
+  .get(validBusinessUser, getReviewOnReport)
+  .post(validBusinessUser, reviewReportHandler);
+
 router.route("/user/contact").get(validBusinessUser, businessContact);
 router.route("/category").get(validBusinessUser, getAllListingCategory);
 

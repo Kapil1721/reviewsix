@@ -56,11 +56,6 @@ exports.businessReviewStatsCalc = catchAsync(async (req, res, err) => {
       listingId: sda.id,
       createdAt: {
         gte: new Date(`${currentYear}-${currentMonth}-01`),
-        lt: new Date(
-          `${currentYear !== 12 ? currentYear + 1 : currentYear}-${
-            currentMonth !== 12 ? currentMonth + 1 : currentMonth
-          }-01`
-        ),
       },
     },
   });
@@ -70,7 +65,7 @@ exports.businessReviewStatsCalc = catchAsync(async (req, res, err) => {
       listingId: sda.id,
       createdAt: {
         gte: new Date(`${previousYear}-${previousMonth}-01`),
-        lt: new Date(`${previousYear}-${previousMonth + 1}-01`),
+        lt: new Date(`${currentYear}-${currentMonth}-01`),
       },
     },
   });
@@ -124,6 +119,10 @@ exports.getAllReviewsForBusinessUser = catchAsync(async (req, res, err) => {
 
   if (req.query.filter) {
     modifier.active = JSON.parse(req.query.filter);
+  }
+
+  if (req.query.r) {
+    modifier.rating = Number(req.query.r);
   }
 
   const page = req.query.page || 1;
@@ -207,7 +206,9 @@ exports.getReviewOnReport = catchAsync(async (req, res, err) => {
       c.email,
       z.review,
       z.email AS review_email,
-      z.name AS review_user
+      z.name AS review_user,
+      z.rating,
+      z.active
   FROM
       review_report r
   LEFT JOIN users c ON
@@ -220,5 +221,20 @@ exports.getReviewOnReport = catchAsync(async (req, res, err) => {
   res.status(200).json({
     message: "success",
     data,
+  });
+});
+
+exports.reviewReportHandler = catchAsync(async (req, res, err) => {
+  await prisma.review.update({
+    where: {
+      id: req.body.id,
+    },
+    data: {
+      active: req.body.status,
+    },
+  });
+
+  res.status(200).json({
+    message: "status updated successfully",
   });
 });
