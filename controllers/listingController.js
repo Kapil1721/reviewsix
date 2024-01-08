@@ -144,8 +144,6 @@ exports.reviewPostHandler = catchAsync(async (req, res, next) => {
 });
 
 exports.getReviewHandler = catchAsync(async (req, res, next) => {
-  console.log(req.query.id);
-
   const reviews = await prisma.review.findMany({
     where: {
       listingId: req.query.id,
@@ -159,10 +157,17 @@ exports.getReviewHandler = catchAsync(async (req, res, next) => {
     },
   });
 
+  const avg = await prisma.$queryRaw`
+   SELECT AVG(rating) AS average_rating
+   FROM reviews
+   WHERE listingId = ${req.query.id} AND active = 1;
+  `;
+
   res.status(200).json({
     message: "success",
     status: 200,
     data: reviews,
+    avg,
   });
 });
 
@@ -504,12 +509,12 @@ exports.ListingSearch = catchAsync(async (req, res, next) => {
   const allDocuments = await prisma.businessPrimaryDetails.findMany();
   const results = [];
 
+  console.log(searchQuery);
+
   const queryTokens = searchQuery.split(" ");
 
   for (const doc of allDocuments) {
     const url = new URL(ensureHttps(doc.website));
-
-    console.log(url);
 
     const domain = url.hostname.toLowerCase();
 
