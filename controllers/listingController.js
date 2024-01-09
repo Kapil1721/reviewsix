@@ -485,6 +485,8 @@ exports.getListingAdvertisment = catchAsync(async (req, res, err) => {
     },
   });
 
+  console.log(data);
+
   res.status(200).json({
     message: "success",
     data,
