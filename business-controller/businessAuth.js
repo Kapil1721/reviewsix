@@ -147,7 +147,7 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
 
   const hog = fs.readFileSync(filePath, "utf8");
 
-  const message = `https://thepreview.pro/business/password/${varificationToken}/${newUser.id}`;
+  const message = `https://business.thebusinessrating.com/password/${varificationToken}/${newUser.id}`;
 
   try {
     await sendEmail({
