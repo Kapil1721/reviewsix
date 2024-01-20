@@ -119,15 +119,18 @@ exports.deleteMedia = catchAsync(async (req, res, next) => {
 });
 
 exports.getSubscriptionDetails = catchAsync(async (req, res, next) => {
-  const data = await prisma.premiumUser.findFirst({
+  const data = await prisma.premiumUser.findMany({
     where: {
       userId: req.body.userId,
+    },
+    orderBy: {
+      createdAt: "desc",
     },
   });
 
   res.status(200).json({
     message: "success",
-    data,
+    data: data[0],
   });
 });
 
@@ -142,5 +145,32 @@ exports.getSubscriptionHistory = catchAsync(async (req, res, next) => {
   res.status(200).json({
     message: "success",
     data,
+  });
+});
+
+exports.renewSubscription = catchAsync(async (req, res, next) => {
+  const data = await prisma.subscription.create({
+    data: {
+      userId: req.body.userId,
+      listingid: req.body.listingid,
+      paymentId: req.body.userId,
+    },
+  });
+
+  req.body.subscriptionId = data.id;
+  req.body.planActive = true;
+  req.body.currentPlanStart = isoFormattedCurrentDate;
+  req.body.currentPlanEnd = isoFormattedFutureDate;
+
+  await prisma.premiumUser.update({
+    where: {
+      userId: req.body.userId,
+    },
+    data: {
+      subscriptionId: data.id,
+      planActive: true,
+      currentPlanStart: isoFormattedCurrentDate,
+      currentPlanEnd: isoFormattedFutureDate,
+    },
   });
 });

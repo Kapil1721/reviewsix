@@ -20,6 +20,14 @@ const {
   updateCateory,
   updateTopCategoryStatus,
   updateTopUserStatus,
+  addBusinessListingHandler,
+  getBusinessListingById,
+  UpdateBusinessListingById,
+  getBusinessUserDetails,
+  getBuinessListingDetailsById,
+  getBusinessReviewsById,
+  getReviewReportsById,
+  getSubscriptionHistory,
 } = require("../controllers/adminController");
 const {
   blogCommentDeleteHandler,
@@ -54,6 +62,12 @@ router
   .post(adminClaim);
 
 router
+  .route("/business/:id?")
+  .post(addBusinessListingHandler)
+  .get(getBusinessListingById)
+  .patch(UpdateBusinessListingById);
+
+router
   .route("/blog/:id?")
   .get(getBlogData)
   .delete(deleteBlogData)
@@ -73,5 +87,11 @@ router
   .put(updateTopCategoryStatus);
 
 router.route("/bulk").post(bulkUploaderController);
+router.route("/businessUser").get(getBusinessUserDetails);
+
+router.route("/businessUser/details/:id").get(getBuinessListingDetailsById);
+router.route("/businessUser/reviews/:id").get(getBusinessReviewsById);
+router.route("/businessUser/reports/:id").get(getReviewReportsById);
+router.route("/businessUser/subscription/:id").get(getSubscriptionHistory);
 
 module.exports = router;

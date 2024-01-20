@@ -433,13 +433,15 @@ exports.deleteCategory = catchAsync(async (req, res, next) => {
 });
 
 exports.bulkUploaderController = catchAsync(async (req, res, next) => {
-  const data = await prisma.companyListing.createMany({
-    data: req.body,
-  });
+  console.log(req.body);
+
+  // const data = await prisma.companyListing.createMany({
+  //   data: req.body,
+  // });
 
   res.status(201).json({
     message: "success",
-    data,
+    // data,
   });
 });
 
@@ -466,5 +468,164 @@ exports.updateTopUserStatus = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     message: "success",
+  });
+});
+
+//
+
+exports.addBusinessListingHandler = catchAsync(async (req, res, next) => {
+  await prisma.businessPrimaryDetails.create({ data: req.body });
+
+  res.status(201).json({
+    message: "business added successfully",
+  });
+});
+
+exports.getBusinessListingById = catchAsync(async (req, res, next) => {
+  const data = await prisma.businessPrimaryDetails.findFirst({
+    where: { id: req.params.id },
+  });
+
+  res.status(200).json({
+    message: "business added successfully",
+    data,
+  });
+});
+
+exports.UpdateBusinessListingById = catchAsync(async (req, res, next) => {
+  await prisma.businessPrimaryDetails.update({
+    where: { id: req.body.id },
+    data: {
+      website: req.body.website,
+      address: req.body.address,
+      workemail: req.body.workemail,
+      phone: req.body.phone,
+      companyname: req.body.companyname,
+      about: req.body.about,
+      category: req.body.category,
+    },
+  });
+
+  res.status(200).json({
+    message: "business Listing Udpated successfully",
+  });
+});
+
+exports.getBusinessUserDetails = catchAsync(async (req, res, next) => {
+  const data = await prisma.businessUsers.findMany({});
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
+
+exports.getBuinessListingDetailsById = catchAsync(async (req, res, next) => {
+  const data = await prisma.$queryRaw`SELECT
+  c.*, p.companyname, p.email, p.fname, p.lname, p.jobtitle
+  FROM
+  business_primary_details c
+  LEFT JOIN
+  business_users p ON c.userid = p.id WHERE p.id = ${req.params.id}`;
+
+  const reviews = await prisma.review.count({
+    where: {
+      listingId: data[0].id,
+    },
+  });
+
+  const report = await prisma.reviewReport.count({
+    where: {
+      listingId: data[0].id,
+    },
+  });
+
+  res.status(200).json({
+    message: "success",
+    data,
+    reviews,
+    report,
+  });
+});
+
+exports.getBuinessListingDetailsById = catchAsync(async (req, res, next) => {
+  const data = await prisma.$queryRaw`SELECT
+  c.*, p.companyname, p.email, p.fname, p.lname, p.jobtitle
+  FROM
+  business_primary_details c
+  LEFT JOIN
+  business_users p ON c.userid = p.id WHERE p.id = ${req.params.id}`;
+
+  const reviews = await prisma.review.count({
+    where: {
+      listingId: data[0].id,
+    },
+  });
+
+  const report = await prisma.reviewReport.count({
+    where: {
+      listingId: data[0].id,
+    },
+  });
+
+  res.status(200).json({
+    message: "success",
+    data,
+    reviews,
+    report,
+  });
+});
+
+exports.getBusinessReviewsById = catchAsync(async (req, res, next) => {
+  const data = await prisma.review.findMany({
+    where: {
+      listingId: req.params.id,
+    },
+  });
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
+
+exports.getReviewReportsById = catchAsync(async (req, res, next) => {
+  console.log(req.params.id);
+
+  const data = await prisma.$queryRaw`
+    SELECT
+      r.*,
+      c.name,
+      c.email,
+      z.review,
+      z.email AS review_email,
+      z.name AS review_user,
+      z.rating,
+      z.active
+  FROM
+      review_report r
+  LEFT JOIN users c ON
+      c.id = r.userId
+  LEFT JOIN reviews z ON
+      r.reviewId = z.id
+  WHERE
+      r.listingId = ${req.params.id}`;
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
+
+exports.getSubscriptionHistory = catchAsync(async (req, res, next) => {
+  const data = await prisma.premiumUser.findMany({
+    where: {
+      listingid: req.params.id,
+    },
+  });
+
+  res.status(200).json({
+    message: "success",
+    data,
   });
 });

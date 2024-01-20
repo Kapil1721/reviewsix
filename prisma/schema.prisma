@@ -153,6 +153,10 @@ model businessPrimaryDetails {
   adminStats    Boolean?
   Review        Review[]
   ReviewReport  ReviewReport[]
+  companyname   String?        @db.VarChar(255)
+  address       String?        @db.VarChar(255)
+  workemail     String?        @unique @db.VarChar(255)
+  phone         String?        @db.VarChar(255)
 
   @@map("business_primary_details")
 }
