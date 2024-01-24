@@ -64,15 +64,25 @@ exports.subValidator = catchAsync(async (req, res, next) => {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 exports.newSubscription = catchAsync(async (req, res, next) => {
-  const data = await prisma.subscription.create({
-    data: {
+  const reg = await prisma.subscription.findFirst({
+    where: {
       userId: req.body.userId,
-      listingid: req.body.listingid,
-      paymentId: req.body.userId,
     },
   });
 
-  req.body.subscriptionId = data.id;
+  let data;
+
+  if (!reg) {
+    data = await prisma.subscription.create({
+      data: {
+        userId: req.body.userId,
+        listingid: req.body.listingid,
+        paymentId: req.body.userId,
+      },
+    });
+  }
+
+  req.body.subscriptionId = reg ? reg.id : data.id;
   req.body.planActive = true;
   req.body.currentPlanStart = isoFormattedCurrentDate;
   req.body.currentPlanEnd = isoFormattedFutureDate;
@@ -119,6 +129,17 @@ exports.deleteMedia = catchAsync(async (req, res, next) => {
 });
 
 exports.getSubscriptionDetails = catchAsync(async (req, res, next) => {
+  await prisma.premiumUser.updateMany({
+    where: {
+      currentPlanEnd: {
+        lt: currentDate,
+      },
+    },
+    data: {
+      planActive: false,
+    },
+  });
+
   const data = await prisma.premiumUser.findMany({
     where: {
       userId: req.body.userId,

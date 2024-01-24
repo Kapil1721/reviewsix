@@ -101,6 +101,9 @@ exports.updateBusinessProfile = catchAsync(async (req, res, next) => {
       icon: req.body.icon,
       banner: req.body.banner,
       category: req.body.category,
+      workemail: req.body.workemail,
+      address: req.body.location,
+      companyname: req.body.businessname,
     },
   });
 

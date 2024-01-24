@@ -127,6 +127,10 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
       data: {
         taken: true,
         userid: newUser.id,
+        address: req.body.address,
+        phone: req.body.phone,
+        companyname: req.body.companyname,
+        workemail: req.body.email,
       },
     });
   } else {
@@ -135,6 +139,10 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
         website: req.body.website,
         taken: true,
         userid: newUser.id,
+        address: req.body.address,
+        phone: req.body.phone,
+        companyname: req.body.companyname,
+        workemail: req.body.email,
       },
     });
   }
