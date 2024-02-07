@@ -590,8 +590,6 @@ exports.getBusinessReviewsById = catchAsync(async (req, res, next) => {
 });
 
 exports.getReviewReportsById = catchAsync(async (req, res, next) => {
-  console.log(req.params.id);
-
   const data = await prisma.$queryRaw`
     SELECT
       r.*,
@@ -627,5 +625,6 @@ exports.getSubscriptionHistory = catchAsync(async (req, res, next) => {
   res.status(200).json({
     message: "success",
     data,
+    review,
   });
 });

@@ -155,3 +155,38 @@ exports.uploadBusinessMedia = catchAsync(async (req, res, next) => {
     status: "Media successfully inserted",
   });
 });
+
+exports.getBusinessDetails = catchAsync(async (req, res, next) => {
+  const data = await prisma.businessPrimaryDetails.findFirst({
+    where: {
+      website: {
+        contains: req.query.id,
+      },
+    },
+  });
+
+  let review;
+  let avg;
+
+  if (data) {
+    review = await prisma.review.count({
+      where: {
+        listingId: data.id,
+        active: true,
+      },
+    });
+
+    avg = await prisma.$queryRaw`
+    SELECT AVG(rating) AS average_rating
+    FROM reviews
+    WHERE listingId = ${data.id} AND active = 1;
+   `;
+  }
+
+  res.status(200).json({
+    message: "success",
+    data,
+    review: review ?? 0,
+    avg: avg ? avg[0] : {},
+  });
+});

@@ -3,6 +3,7 @@ const helmet = require("helmet");
 
 const bodyParser = require("body-parser");
 const cors = require("cors");
+
 const dotenv = require("dotenv");
 var cookieParser = require("cookie-parser");
 
@@ -11,6 +12,7 @@ const globalErrorHandler = require("./controllers/errorController");
 
 const userRouter = require("./routes/userRoutes");
 const contentRouter = require("./routes/contentRoutes");
+
 const companyRouter = require("./routes/companyListing");
 const adminRoutes = require("./routes/adminRoutes");
 const reviewRoutes = require("./routes/reviewsRoutes");

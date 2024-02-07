@@ -16,6 +16,7 @@ const {
   getAdController,
   updateAdController,
   uploadBusinessMedia,
+  getBusinessDetails,
 } = require("../../business-controller/businessProfileController");
 
 const {
@@ -35,6 +36,7 @@ const {
   getSubscriptionDetails,
   getSubscriptionHistory,
 } = require("../../business-controller/businessSubscriptionController");
+
 const {
   getListingPremiumStatus,
 } = require("../../controllers/listingController");
@@ -96,5 +98,7 @@ router
 router
   .route("/subscription/history")
   .get(validBusinessUser, getSubscriptionHistory);
+
+router.route("/score").get(getBusinessDetails);
 
 module.exports = router;

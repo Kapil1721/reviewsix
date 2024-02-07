@@ -19,6 +19,7 @@ const {
   getListingPremiumStatus,
   getListingMedia,
 } = require("../controllers/listingController");
+
 const { validUser } = require("../controllers/authController");
 
 const router = express.Router();
@@ -49,10 +50,8 @@ router.route("/listing/claim").post(validUser, claimListingHandler);
 router.route("/listing/verify/:vcode/:uid").get(verifiyListingConfirmation);
 
 router.route("/listing/review/:id").get(getReviewByCategory);
-
 router.route("/listing/advertisment/:id?").get(getListingAdvertisment);
 router.route("/listing/media/:id?").get(getListingMedia);
-
 router.route("/listing_m_details").post(getListingPremiumStatus);
 
 module.exports = router;

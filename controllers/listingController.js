@@ -354,11 +354,14 @@ exports.getListingPremiumStatus = catchAsync(async (req, res, next) => {
     },
   });
 
-  const PremiumDetails = await prisma.premiumUser.findFirst({
-    where: {
-      listingid: listing.id,
-    },
-  });
+  let PremiumDetails;
+  if (listing) {
+    PremiumDetails = await prisma.premiumUser.findFirst({
+      where: {
+        listingid: listing.id,
+      },
+    });
+  }
 
   if (!PremiumDetails) {
     return res.status(200).json({
