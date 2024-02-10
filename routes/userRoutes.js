@@ -19,6 +19,9 @@ const {
   getTopRatingUser,
   reviewOnMylisting,
   updateUserReview,
+  sendOtp,
+  otpValidator,
+  passwordResetHandler,
 } = require("../controllers/userController");
 const router = express.Router();
 
@@ -52,5 +55,9 @@ router.route("/top-reviewers").get(getTopRatingUser);
 
 router.route("/review-stats").get(validUser, reviewStats);
 router.route("/business-stats").get(validUser, ListingStats);
+
+router.route("/reset/otp").post(sendOtp);
+router.route("/reset/verify").post(otpValidator);
+router.route("/reset/update").post(passwordResetHandler);
 
 module.exports = router;

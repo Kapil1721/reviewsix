@@ -401,3 +401,128 @@ exports.ListingStats = catchAsync(async (req, res, err) => {
     data: result,
   });
 });
+
+function generateRandomSixDigitNumber() {
+  const min = 100000;
+  const max = 999999;
+
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+exports.sendOtp = catchAsync(async (req, res, next) => {
+  const randomBytes = generateRandomSixDigitNumber();
+
+  const enrypt = await bcrypt.hash(randomBytes.toString(), 10);
+
+  const message = `Here is your one-time password for Password reset: ${randomBytes}`;
+
+  const user = await prisma.user.findFirst({
+    where: {
+      email: req.body.email,
+    },
+  });
+
+  if (!user) {
+    res.status(404).json({
+      message: "not found",
+      status: 200,
+    });
+  }
+
+  if (user) {
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        verification: enrypt,
+      },
+    });
+
+    try {
+      await sendEmail({
+        email: req.body.email,
+        subject: "Reset your passowrd",
+        message,
+      });
+
+      res.status(200).json({
+        message: "success",
+        status: 200,
+      });
+    } catch (err) {
+      return next(
+        new AppError("There was an error sending the email. Try again later!"),
+        500
+      );
+    }
+  }
+});
+
+exports.otpValidator = catchAsync(async (req, res, next) => {
+  const user = await prisma.user.findFirst({
+    where: {
+      email: req.body.email,
+    },
+  });
+
+  const verify = await bcrypt.compare(req.body.code, user.verification);
+
+  if (verify) {
+    res.status(200).json({
+      message: "verified",
+      status: 200,
+    });
+  } else {
+    res.status(202).json({
+      message: "wrong otp",
+      status: 202,
+    });
+  }
+});
+
+exports.passwordResetHandler = catchAsync(async (req, res, next) => {
+  if (!req.body.email) {
+    res.status(401).json({
+      message: "Token Expire or Invalid user",
+      status: 202,
+    });
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      email: req.body.email,
+    },
+  });
+
+  if (!user) {
+    res.status(401).json({
+      message: "Token Expire or Invalid user",
+      status: 202,
+    });
+  }
+  const verify = await bcrypt.compare(req.body.code, user.verification);
+
+  if (verify) {
+    const password = await bcrypt.hash(req.body.password, 12);
+
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        password: password,
+      },
+    });
+
+    res.status(200).json({
+      message: "password updated sucessfully",
+      status: 200,
+    });
+  } else {
+    res.status(401).json({
+      message: "Token Expire or Invalid user",
+      status: 401,
+    });
+  }
+});
