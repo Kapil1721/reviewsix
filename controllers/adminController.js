@@ -618,7 +618,14 @@ exports.getReviewReportsById = catchAsync(async (req, res, next) => {
 exports.getSubscriptionHistory = catchAsync(async (req, res, next) => {
   const data = await prisma.premiumUser.findMany({
     where: {
-      listingid: req.params.id,
+      OR: [
+        {
+          listingid: req.params.id,
+        },
+        {
+          userId: req.params.id,
+        },
+      ],
     },
   });
 
@@ -632,21 +639,21 @@ exports.userSubscriptionDetails = catchAsync(async (req, res, next) => {
   // const data = await prisma.subscription.findMany();
 
   const data = await prisma.$queryRaw`
-  SELECT 
-    subscription.id AS subscriptionId,
-    subscription.listingId AS listingid,
-    business_users.id AS userId,
-    business_users.email AS email,
-    business_users.website AS website,
-    business_users.fname AS fname,
-    business_users.lname AS lname,
-    CAST(COUNT(premium_user.subscriptionId) AS DECIMAL(10, 0)) AS subscriptionCount,
-    MAX(premium_user.currentPlanEnd) AS lastMatchingField
-  FROM subscription
-  JOIN business_users ON subscription.userId = business_users.id
-  JOIN premium_user ON subscription.id = premium_user.subscriptionId
-  GROUP BY subscription.id, business_users.id;
-`;
+    SELECT 
+      subscription.id AS subscriptionId,
+      subscription.listingId AS listingid,
+      business_users.id AS userId,
+      business_users.email AS email,
+      business_users.website AS website,
+      business_users.fname AS fname,
+      business_users.lname AS lname,
+      CAST(COUNT(premium_user.subscriptionId) AS DECIMAL(10, 0)) AS subscriptionCount,
+      MAX(premium_user.currentPlanEnd) AS lastMatchingField
+    FROM subscription
+    JOIN business_users ON subscription.userId = business_users.id
+    JOIN premium_user ON subscription.id = premium_user.subscriptionId
+    GROUP BY subscription.id, business_users.id;
+  `;
 
   res.status(200).json({
     message: "success",
