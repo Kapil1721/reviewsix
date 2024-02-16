@@ -181,7 +181,7 @@ exports.verifyUserLink = catchAsync(async (req, res, next) => {
       },
     });
 
-    res.redirect("https://thebusinessrating.com/");
+    res.redirect("https://thepreview.pro/thebusinessrating");
     // res.send(`<h3 style='text-align:center;'>Verification complete</h3>`);
   } else {
     res.send(`<p style='text-align:center;color:red;'>Link expired ...</p>`);
