@@ -77,11 +77,17 @@ exports.businessUserSignup = catchAsync(async (req, res, next) => {
   req.body.website = removeHttpsAndWww(req.body.website);
 
   if (req.body.website) {
-    const exists = await checkDomainExistence(
-      req.body.website.replace(/^(https?|ftp):\/\//, "")
-    );
+    try {
+      const exists = await checkDomainExistence(
+        req.body.website.replace(/^(https?|ftp):\/\//, "")
+      );
 
-    if (!exists) {
+      if (!exists) {
+        return res.status(401).json({
+          message: "invalid website",
+        });
+      }
+    } catch (error) {
       return res.status(401).json({
         message: "invalid website",
       });

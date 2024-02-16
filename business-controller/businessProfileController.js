@@ -104,6 +104,7 @@ exports.updateBusinessProfile = catchAsync(async (req, res, next) => {
       workemail: req.body.workemail,
       address: req.body.location,
       companyname: req.body.businessname,
+      phone: req.body.phone,
     },
   });
 
