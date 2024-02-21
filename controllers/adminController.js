@@ -503,6 +503,7 @@ exports.UpdateBusinessListingById = catchAsync(async (req, res, next) => {
       companyname: req.body.companyname,
       about: req.body.about,
       category: req.body.category,
+      icon: req.body.icon,
     },
   });
 
@@ -654,6 +655,37 @@ exports.userSubscriptionDetails = catchAsync(async (req, res, next) => {
     JOIN premium_user ON subscription.id = premium_user.subscriptionId
     GROUP BY subscription.id, business_users.id;
   `;
+
+  res.status(200).json({
+    message: "success",
+    data,
+  });
+});
+
+exports.getReviewReport = catchAsync(async (req, res, next) => {
+  const data = await prisma.reviewReport.findMany({
+    include: {
+      user: {
+        select: {
+          name: true,
+          id: true,
+          email: true,
+        },
+      },
+      review: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+              id: true,
+            },
+          },
+        },
+      },
+      listing: true,
+    },
+  });
 
   res.status(200).json({
     message: "success",

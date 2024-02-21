@@ -29,6 +29,7 @@ const {
   getReviewReportsById,
   getSubscriptionHistory,
   userSubscriptionDetails,
+  getReviewReport,
 } = require("../controllers/adminController");
 const {
   blogCommentDeleteHandler,
@@ -95,5 +96,6 @@ router.route("/businessUser/reviews/:id").get(getBusinessReviewsById);
 router.route("/businessUser/reports/:id").get(getReviewReportsById);
 router.route("/businessUser/subscription/:id").get(getSubscriptionHistory);
 router.route("/subscription").get(userSubscriptionDetails);
+router.route("/review-report").get(getReviewReport);
 
 module.exports = router;
