@@ -435,9 +435,9 @@ exports.deleteCategory = catchAsync(async (req, res, next) => {
 exports.bulkUploaderController = catchAsync(async (req, res, next) => {
   console.log(req.body);
 
-  // const data = await prisma.companyListing.createMany({
-  //   data: req.body,
-  // });
+  const data = await prisma.businessPrimaryDetails.createMany({
+    data: req.body,
+  });
 
   res.status(201).json({
     message: "success",

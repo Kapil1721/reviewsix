@@ -20,6 +20,7 @@ model User {
   createdAt    DateTime?      @default(now())
   verification String?        @db.VarChar(255)
   reviewId     String?
+  countryCode  String?        @default("+1")
   Review       Review[]
   ReviewReport ReviewReport[]
   isTop        Boolean        @default(false)
