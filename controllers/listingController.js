@@ -129,6 +129,7 @@ exports.reviewPostHandler = catchAsync(async (req, res, next) => {
         data: review,
       });
     } catch (err) {
+      console.log(err);
       return next(
         new AppError("There was an error sending the email. Try again later!"),
         500
