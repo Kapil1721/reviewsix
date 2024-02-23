@@ -23,3 +23,5 @@ const sendEmail = async (options) => {
 };
 
 module.exports = sendEmail;
+
+//  smtp updated on 23 feb 2024
