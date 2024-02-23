@@ -471,8 +471,6 @@ exports.updateTopUserStatus = catchAsync(async (req, res, next) => {
   });
 });
 
-//
-
 exports.addBusinessListingHandler = catchAsync(async (req, res, next) => {
   await prisma.businessPrimaryDetails.create({ data: req.body });
 
