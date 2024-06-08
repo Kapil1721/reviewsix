@@ -24,9 +24,15 @@ model User {
   Review       Review[]
   ReviewReport ReviewReport[]
   isTop        Boolean        @default(false)
+  role         Role?          @default(USER)
 
   @@map("users")
 }
+enum Role {
+  USER
+  ADMIN
+}
+
 
 model FooterSetting {
   id          String @id @default(uuid())
