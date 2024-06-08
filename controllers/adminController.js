@@ -140,6 +140,9 @@ exports.getUserData = catchAsync(async (req, res, next) => {
     orderBy: {
       createdAt: "desc",
     },
+    where: {
+      role: "USER",
+    },
   });
 
   res.status(200).json({
