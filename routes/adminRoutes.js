@@ -30,6 +30,7 @@ const {
   getSubscriptionHistory,
   userSubscriptionDetails,
   getReviewReport,
+  adminLogin,
 } = require("../controllers/adminController");
 const {
   blogCommentDeleteHandler,
@@ -37,6 +38,9 @@ const {
 } = require("../controllers/blogController");
 
 const router = express.Router();
+
+//added by shyam
+router.route("/auth").post(adminLogin);
 
 router.route("/size-collec").get(collectionSizeData);
 router
